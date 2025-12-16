@@ -41,7 +41,7 @@ function redDir(verb) {
   const ENV = getEnv();
   const VERB = verb;
   let newLocation;
-  if (hostname !== 'www.adobe.com' && hostname !== 'sign.ing' && hostname !== 'edit.ing') {
+  if (hostname !== 'www.adobe.com' && hostname !== 'acrobat.adobe.com' && hostname !== 'sign.ing' && hostname !== 'edit.ing') {
     newLocation = `https://www.adobe.com/go/acrobat-${verbRedirMap[VERB] || VERB.split('-').join('')}-${ENV}`;
   } else {
     newLocation = `https://www.adobe.com/go/acrobat-${verbRedirMap[VERB] || VERB.split('-').join('')}` || fallBack;
