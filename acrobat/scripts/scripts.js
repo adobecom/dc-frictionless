@@ -258,7 +258,7 @@ const locales = {
 const CONFIG = {
   codeRoot: '/acrobat',
   contentRoot: '/dc-shared',
-  imsClientId: 'acrobatmilo',
+  imsClientId: 'acrobatmiloguest',
   commerce: { checkoutClientId: 'doc_cloud' },
   local: {
     edgeConfigId: 'e065836d-be57-47ef-b8d1-999e1657e8fd',
