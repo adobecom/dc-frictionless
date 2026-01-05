@@ -40,7 +40,7 @@ export const [setLibs, getLibs] = (() => {
 
 export function getEnv() {
   const { hostname } = window.location;
-  if (['www.adobe.com', 'sign.ing', 'edit.ing'].includes(hostname)) return 'prod';
+  if (['www.adobe.com', 'acrobat.adobe.com', 'sign.ing', 'edit.ing'].includes(hostname)) return 'prod';
   if (
     [
       'stage--dc--adobecom.hlx.page',

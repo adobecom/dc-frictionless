@@ -264,7 +264,7 @@ export const LIMITS = {
   },
 };
 
-const DC_ENV = ['www.adobe.com', 'sign.ing', 'edit.ing'].includes(window.location.hostname) ? 'prod' : 'stage';
+const DC_ENV = ['www.adobe.com', 'acrobat.adobe.com', 'sign.ing', 'edit.ing'].includes(window.location.hostname) ? 'prod' : 'stage';
 
 const setUser = () => {
   localStorage.setItem('unity.user', 'true');
@@ -304,7 +304,7 @@ function redDirLink(verb) {
   const ENV = getEnv();
   const VERB = verb;
   let newLocation;
-  if (hostname !== 'www.adobe.com' && hostname !== 'sign.ing' && hostname !== 'edit.ing') {
+  if (hostname !== 'www.adobe.com' && hostname !== 'acrobat.adobe.com' && hostname !== 'sign.ing' && hostname !== 'edit.ing') {
     newLocation = `https://www.adobe.com/go/acrobat-${verbRedirMap[VERB] || VERB.split('-').join('')}-${ENV}`;
   } else {
     newLocation = `https://www.adobe.com/go/acrobat-${verbRedirMap[VERB] || VERB.split('-').join('')}` || fallBack;

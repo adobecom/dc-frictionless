@@ -17,7 +17,7 @@ export async function responseProvider(request) {
   const last = path.splice(-1)[0].split('.')[0];
   const verb = verbMap[last] || last;
   const origin = `${request.scheme}://${request.host}`;
-  const isProd = request.host === 'www.adobe.com';
+  const isProd = request.host === 'www.adobe.com' || request.host === 'acrobat.adobe.com';
   const rewriter = new HtmlRewritingStream();
 
   const fetchFrictionlessPage = async () => {

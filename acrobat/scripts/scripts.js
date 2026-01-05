@@ -116,6 +116,14 @@ if (hostname.endsWith('.ing')) {
   if (!canonEl?.href.endsWith('.html')) canonEl?.setAttribute('href', `${canonEl.href}.html`);
 }
 
+// Update canonical url for acrobat.adobe.com if it points to www.adobe.com
+if (hostname === 'acrobat.adobe.com') {
+  const canonEl = document.head.querySelector('link[rel="canonical"]');
+  if (canonEl?.href.includes('www.adobe.com')) {
+    canonEl.setAttribute('href', canonEl.href.replace('www.adobe.com', 'acrobat.adobe.com'));
+  }
+}
+
 function loadLink(href, { as, callback, crossorigin, rel, fetchpriority } = {}) {
   let link = document.head.querySelector(`link[href="${href}"]`);
   if (!link) {
@@ -299,7 +307,7 @@ const CONFIG = {
   },
   locales,
   // geoRouting: 'on',
-  prodDomains: ['www.adobe.com', 'business.adobe.com', 'helpx.adobe.com'],
+  prodDomains: ['www.adobe.com', 'acrobat.adobe.com', 'business.adobe.com', 'helpx.adobe.com'],
   stageDomainsMap: {
     '--dc--adobecom.(hlx|aem).page': {
       'www.adobe.com': 'www.stage.adobe.com',
