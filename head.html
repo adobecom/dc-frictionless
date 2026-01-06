@@ -1,5 +1,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://acrobat.adobe.com" crossorigin>
+<script>
+  // Dynamic import map to ensure all Milo imports use the same URL
+  (function() {
+    const { hostname } = window.location;
+    let miloBaseUrl;
+    
+    if (hostname === 'acrobat.adobe.com') {
+      miloBaseUrl = 'https://www.adobe.com/libs/';
+    } else if (hostname === 'stage.acrobat.adobe.com') {
+      miloBaseUrl = 'https://www.stage.adobe.com/libs/';
+    } else {
+      // For other environments, use relative path
+      miloBaseUrl = '/libs/';
+    }
+    
+    // Only set import map if we're using absolute URLs
+    if (miloBaseUrl.startsWith('https://')) {
+      const importMap = document.createElement('script');
+      importMap.type = 'importmap';
+      importMap.textContent = JSON.stringify({
+        imports: {
+          '/libs/': miloBaseUrl
+        }
+      });
+      document.currentScript.insertAdjacentElement('afterend', importMap);
+    }
+  })();
+</script>
 <script src="/acrobat/scripts/scripts.js" type="module"></script>
 <style>body { display: none; }</style>
 <link rel="icon" href="data:,">
@@ -7,6 +35,8 @@
 <script>
   window.setLibs = (prodLibs, location = window.location) => {
     const { hostname, search } = location;
+    if (hostname === 'acrobat.adobe.com') return 'https://www.adobe.com/libs';
+    if (hostname === 'stage.acrobat.adobe.com') return 'https://www.stage.adobe.com/libs';
     if (!/\.hlx\.|\.aem\.|local|stage/.test(hostname)) return prodLibs;
     const branch = new URLSearchParams(search).get('milolibs') || 'main';
     if (branch === 'main' && hostname === 'www.stage.adobe.com') return '/libs';
@@ -56,6 +86,9 @@
   const miloLibs = setLibs('/libs');
   const unityLibs = getUnityLibs();
   const localePrefix =  extractLocalePrefix();
+  
+  // Set global miloLibs for Unity fragments to use
+  window.miloLibs = miloLibs;
 
 
   const preloads = document.querySelector('meta[name="preloads"]')?.content?.split(',').map(x => x.trim().replace('$MILOLIBS', miloLibs).replace('$UNITYLIBS', unityLibs).replace('$LOCALEPREFIX', localePrefix)) || [];
