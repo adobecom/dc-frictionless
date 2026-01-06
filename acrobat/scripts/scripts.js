@@ -486,7 +486,32 @@ async function loadPage() {
   }
 
   // Import base milo features and run them
-  const { loadArea, setConfig, loadLana, getMetadata, loadIms } = await import(`${miloLibs}/utils/utils.js`);
+  //const { loadArea, setConfig, loadLana, getMetadata, loadIms } = await import(`${miloLibs}/utils/utils.js`);
+   let setConfig, loadArea, loadLana, getMetadata, loadIms, getConfig;
+  try {
+    const miloUtils = await import(`${miloLibs}/utils/utils.js`);
+    ({ loadArea, setConfig, loadLana, getMetadata, loadIms, getConfig } = miloUtils);
+    console.log('[DEBUG] Successfully imported Milo utils from:', miloLibs);
+  } catch (error) {
+    console.error('[ERROR] Failed to import Milo utils:', error);
+    throw error;
+  }
+
+  // Set config IMMEDIATELY after successful import
+  try {
+    console.log('[DEBUG] Calling setConfig with CONFIG:', CONFIG);
+    const configResult = setConfig({ ...CONFIG, miloLibs });
+    console.log('[DEBUG] setConfig returned:', configResult);
+    
+    // Verify config was set correctly
+    const currentConfig = getConfig();
+    console.log('[DEBUG] Current config after setConfig:', currentConfig);
+    console.log('[DEBUG] autoBlocks in config:', currentConfig?.autoBlocks);
+  } catch (error) {
+    console.error('[ERROR] Failed to call setConfig:', error);
+    throw error;
+  }
+
   addLocale(ietf);
 
   if (getMetadata('commerce')) {
@@ -494,7 +519,7 @@ async function loadPage() {
     replacePlaceholdersWithImages(ietf, miloLibs);
   }
 
-  setConfig({ ...CONFIG, miloLibs });
+  //setConfig({ ...CONFIG, miloLibs });
 
   window.addEventListener('IMS:Ready', async () => {
     const susiElems = document.querySelectorAll('a[href*="susi"]');
