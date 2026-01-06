@@ -1,31 +1,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://acrobat.adobe.com" crossorigin>
 <script>
-  // Dynamic import map to ensure all Milo imports use the same URL
-  (function() {
+  // Pre-initialize Milo config to prevent undefined autoBlocks error
+  // This ensures Unity fragments and other code share the same config
+  window.__MILO_CONFIG_INIT__ = (function() {
     const { hostname } = window.location;
     let miloBaseUrl;
     
     if (hostname === 'acrobat.adobe.com') {
-      miloBaseUrl = 'https://www.adobe.com/libs/';
+      miloBaseUrl = 'https://www.adobe.com/libs';
     } else if (hostname === 'stage.acrobat.adobe.com') {
-      miloBaseUrl = 'https://www.stage.adobe.com/libs/';
-    } else {
-      // For other environments, use relative path
-      miloBaseUrl = '/libs/';
+      miloBaseUrl = 'https://www.stage.adobe.com/libs';
+    } else if (!/\.hlx\.|\.aem\.|local|stage/.test(hostname)) {
+      miloBaseUrl = '/libs';
     }
     
-    // Only set import map if we're using absolute URLs
-    if (miloBaseUrl.startsWith('https://')) {
-      const importMap = document.createElement('script');
-      importMap.type = 'importmap';
-      importMap.textContent = JSON.stringify({
-        imports: {
-          '/libs/': miloBaseUrl
-        }
-      });
-      document.currentScript.insertAdjacentElement('afterend', importMap);
-    }
+    return {
+      miloBaseUrl,
+      initialized: false,
+      init: function() {
+        if (this.initialized) return;
+        this.initialized = true;
+        console.log('[MILO CONFIG] Pre-init complete, miloBaseUrl:', miloBaseUrl);
+      }
+    };
   })();
 </script>
 <script src="/acrobat/scripts/scripts.js" type="module"></script>
@@ -89,6 +87,25 @@
   
   // Set global miloLibs for Unity fragments to use
   window.miloLibs = miloLibs;
+  
+  // Monkey-patch: Intercept Milo imports to ensure config is initialized
+  const originalImport = window.__orig_import__ || Function.prototype.constructor('return import(arguments[0])')();
+  window.__ensureMiloConfig__ = async function(miloUtilsModule) {
+    if (miloUtilsModule.getConfig && miloUtilsModule.setConfig) {
+      const config = miloUtilsModule.getConfig();
+      // If config.autoBlocks is undefined, initialize it
+      if (!config.autoBlocks) {
+        console.warn('[MILO PATCH] autoBlocks undefined, initializing with minimal config');
+        miloUtilsModule.setConfig({
+          codeRoot: '/acrobat',
+          contentRoot: '/dc-shared',
+          imsClientId: 'acrobatmiloguest',
+          miloLibs: window.miloLibs || miloLibs,
+        });
+      }
+    }
+    return miloUtilsModule;
+  };
 
 
   const preloads = document.querySelector('meta[name="preloads"]')?.content?.split(',').map(x => x.trim().replace('$MILOLIBS', miloLibs).replace('$UNITYLIBS', unityLibs).replace('$LOCALEPREFIX', localePrefix)) || [];
