@@ -51,8 +51,8 @@ export default {
             const jsonContent = JSON.parse(readFileSync(join(process.cwd(), 'tools', 'prerender', injectionFile), 'utf8'));
             htmlContent = jsonContent.html;
             topPosition = jsonContent.top;
-            stylesContent = readFileSync(join(process.cwd(), 'acrobat', 'styles', 'styles.css'), 'utf8');
-            blockContent = readFileSync(join(process.cwd(), 'acrobat', 'blocks', 'verb-widget', 'verb-widget.css'), 'utf8');
+            stylesContent = readFileSync(join(process.cwd(), 'da-acrobat', 'styles', 'styles.css'), 'utf8');
+            blockContent = readFileSync(join(process.cwd(), 'da-acrobat', 'blocks', 'verb-widget', 'verb-widget.css'), 'utf8');
           } catch (error) {
             console.error('Error reading/fetching files:', error);
             stylesContent = '';

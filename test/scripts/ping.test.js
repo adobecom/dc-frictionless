@@ -75,7 +75,7 @@ describe('PingService', () => {
   };
 
   before(async () => {
-    const pingModule = await import('../../acrobat/scripts/ping.js');
+    const pingModule = await import('../../da-acrobat/scripts/ping.js');
     PingService = pingModule.PingService;
     USER_TYPE = pingModule.USER_TYPE;
   });

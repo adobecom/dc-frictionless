@@ -4,7 +4,7 @@ const url = require('url');
 const BRANCH = 'csp-update-branch';
 const REPO = 'dc';
 const OWNER = 'adobecom';
-const URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/acrobat/scripts/contentSecurityPolicy`;
+const URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/da-acrobat/scripts/contentSecurityPolicy`;
 const URL_REF = `?ref=${BRANCH}`;
 const URL_PULL = `https://api.github.com/repos/${OWNER}/${REPO}/pulls`;
 const FILES = ['dev.js', 'stage.js', 'prod.js']
