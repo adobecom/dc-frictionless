@@ -266,7 +266,7 @@ const locales = {
 
 // Add any config options.
 const CONFIG = {
-  codeRoot: '/acrobat',
+  codeRoot: '/dc-shared',
   contentRoot: '/dc-shared',
   imsClientId: 'acrobatmiloguest',
   commerce: { checkoutClientId: 'doc_cloud' },

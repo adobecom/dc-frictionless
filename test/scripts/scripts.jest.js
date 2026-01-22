@@ -81,9 +81,9 @@ describe.skip('Test scripts', () => {
     it('uses prod milolibs', async () => {
       delete window.location;
       window.location = new URL(
-        'https://www.adobe.com/acrobate/online/ppt-to-pdf',
+        'https://www.adobe.com/acrobat/online/ppt-to-pdf',
       );
-      await require('../../acrobat/scripts/scripts.js');
+      await require('../../dc-shared/scripts/scripts.js');
       await delay(100);
       const config = await getConfig();
       expect(config.miloLibs).toEqual('/libs');
@@ -96,7 +96,7 @@ describe.skip('Test scripts', () => {
       window.location = new URL(
         'https://www.adobe.com/acrobate/online/ppt-to-pdf?milolibs=main--milo--tsayadobe',
       );
-      await require('../../acrobat/scripts/scripts.js');
+      await require('../../dc-shared/scripts/scripts.js');
       await delay(100);
       const config = await getConfig();
       expect(config.miloLibs).toEqual('/libs');
@@ -107,7 +107,7 @@ describe.skip('Test scripts', () => {
     it('uses stage milolibs', async () => {
       delete window.location;
       window.location = new URL('https://www.stage.adobe.com/acrobat/online/ppt-to-pdf');
-      await require('../../acrobat/scripts/scripts.js');
+      await require('../../dc-shared/scripts/scripts.js');
       await delay(100);
       const config = await getConfig();
       expect(config.miloLibs).toEqual('https://www.stage.adobe.com/libs');
@@ -118,7 +118,7 @@ describe.skip('Test scripts', () => {
     it('uses localhost milolibs', async () => {
       delete window.location;
       window.location = new URL('https://www.stage.adobe.com/acrobat/online/ppt-to-pdf?milolibs=local');
-      await require('../../acrobat/scripts/scripts.js');
+      await require('../../dc-shared/scripts/scripts.js');
       await delay(100);
       const config = await getConfig();
       expect(config.miloLibs).toEqual('http://localhost:6456/libs');
@@ -129,7 +129,7 @@ describe.skip('Test scripts', () => {
     it('uses hlx live libs', async () => {
       delete window.location;
       window.location = new URL('https://main--dc--adobecom.aem.live/acrobat/online/word-to-pdf');
-      await require('../../acrobat/scripts/scripts.js');
+      await require('../../dc-shared/scripts/scripts.js');
       await delay(100);
       const config = await getConfig();
       expect(config.miloLibs).toEqual('https://main--milo--adobecom.aem.live/libs');
