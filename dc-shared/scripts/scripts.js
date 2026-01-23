@@ -158,7 +158,7 @@ function addLocale(locale) {
 }
 
 // Add project-wide styles here.
-const STYLES = '/acrobat/styles/styles.css';
+const STYLES = '/dc-shared/styles/styles.css';
 
 // Use '/libs' if your live site maps '/libs' to milo's origin.
 const LIBS = '/libs';
