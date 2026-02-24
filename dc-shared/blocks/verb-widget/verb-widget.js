@@ -644,7 +644,7 @@ async function reloadSignedInUser() {
 }
 
 export default async function init(element) {
-  reloadSignedInUser();
+  if (isSubdomain()) reloadSignedInUser();
 
   ({
     createTag, getConfig, loadBlock, getMetadata, loadIms, loadScript,
