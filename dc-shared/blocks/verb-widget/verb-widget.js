@@ -315,6 +315,7 @@ function addCookieIfSubdomain() {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 function initPrerender(url) {
   if (!url || !HTMLScriptElement?.supports('speculationrules') || !isSubdomain()) {
     return;
@@ -338,8 +339,9 @@ function redDirLink(verb) {
   return newLocation;
 }
 
+// eslint-disable-next-line no-unused-vars
 function redDir(verb) {
-  //window.location.href = redDirLink(verb);
+  // window.location.href = redDirLink(verb);
 }
 
 function getSplunkEndpoint() {
