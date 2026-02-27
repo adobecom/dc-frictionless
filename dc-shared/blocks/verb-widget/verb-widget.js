@@ -39,6 +39,7 @@ const verbRedirMap = {
   'ocr-pdf': 'ocr',
   'chat-pdf': 'chat',
   'chat-pdf-student': 'study',
+  'heic-to-pdf': 'heic-to-pdf',
 };
 
 const exhLimitCookieMap = {
@@ -331,11 +332,8 @@ function redDirLink(verb) {
   const ENV = getEnv();
   const VERB = verb;
   let newLocation;
-  if (hostname !== 'www.adobe.com' && hostname !== 'acrobat.adobe.com' && hostname !== 'sign.ing' && hostname !== 'edit.ing') {
-    newLocation = `https://www.adobe.com/go/acrobat-${verbRedirMap[VERB] || VERB.split('-').join('')}-${ENV}`;
-  } else {
-    newLocation = `https://www.adobe.com/go/acrobat-${verbRedirMap[VERB] || VERB.split('-').join('')}` || fallBack;
-  }
+  if (hostname !== 'acrobat.adobe.com') newLocation = `https://acrobat.adobe.com/${verbRedirMap[VERB]}`;
+  else newLocation = `https://stage.acrobat.adobe.com/${verbRedirMap[VERB]}` || fallBack;
   return newLocation;
 }
 
