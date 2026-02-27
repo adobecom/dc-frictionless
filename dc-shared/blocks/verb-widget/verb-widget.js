@@ -329,7 +329,6 @@ function initPrerender(url) {
 
 function redDirLink(verb) {
   const hostname = window?.location?.hostname;
-  const ENV = getEnv();
   const VERB = verb;
   let newLocation;
   if (hostname !== 'acrobat.adobe.com') newLocation = `https://acrobat.adobe.com/${verbRedirMap[VERB]}`;
