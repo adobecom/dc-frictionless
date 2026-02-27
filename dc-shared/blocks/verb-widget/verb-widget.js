@@ -39,6 +39,7 @@ const verbRedirMap = {
   'ocr-pdf': 'ocr',
   'chat-pdf': 'chat',
   'chat-pdf-student': 'study',
+  'heic-to-pdf': 'heic-to-pdf',
 };
 
 const exhLimitCookieMap = {
@@ -315,7 +316,6 @@ function addCookieIfSubdomain() {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 function initPrerender(url) {
   if (!url || !HTMLScriptElement?.supports('speculationrules') || !isSubdomain()) {
     return;
@@ -331,17 +331,13 @@ function redDirLink(verb) {
   const ENV = getEnv();
   const VERB = verb;
   let newLocation;
-  if (hostname !== 'www.adobe.com' && hostname !== 'acrobat.adobe.com' && hostname !== 'sign.ing' && hostname !== 'edit.ing') {
-    newLocation = `https://www.adobe.com/go/acrobat-${verbRedirMap[VERB] || VERB.split('-').join('')}-${ENV}`;
-  } else {
-    newLocation = `https://www.adobe.com/go/acrobat-${verbRedirMap[VERB] || VERB.split('-').join('')}` || fallBack;
-  }
+  if (hostname !== 'acrobat.adobe.com') newLocation = `https://acrobat.adobe.com/${verbRedirMap[VERB]`;
+  else newLocation = `https://stage.acrobat.adobe.com/${verbRedirMap[VERB]`  || fallBack;
   return newLocation;
 }
 
-// eslint-disable-next-line no-unused-vars
 function redDir(verb) {
-  // window.location.href = redDirLink(verb);
+  //window.location.href = redDirLink(verb);
 }
 
 function getSplunkEndpoint() {
@@ -632,21 +628,14 @@ window.addEventListener('analyticsLoad', async ({ detail }) => {
   }
 });
 
-async function reloadSignedInUser() {
-  const adobeIMS = window.adobeIMS?.isSignedInUser
-    ? window.adobeIMS
-    : await new Promise((res) => {
-      window.addEventListener('IMS:Ready', () => res(window.adobeIMS), { once: true });
-    });
-  if (adobeIMS?.isSignedInUser() && !localStorage.getItem('signed_in_reload')) {
+export default async function init(element) {
+  if (window.adobeIMS?.isSignedInUser() && !localStorage.getItem('signed_in_reload')) {
     localStorage.setItem('signed_in_reload', 'true');
+    console.log('instant reload');
     window.location.reload();
+    return;
   }
   localStorage.removeItem('signed_in_reload');
-}
-
-export default async function init(element) {
-  if (isSubdomain()) reloadSignedInUser();
 
   ({
     createTag, getConfig, loadBlock, getMetadata, loadIms, loadScript,
