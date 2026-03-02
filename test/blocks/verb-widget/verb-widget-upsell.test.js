@@ -4,7 +4,7 @@ import { expect } from '@esm-bundle/chai';
 import sinon from 'sinon';
 
 const { default: init } = await import(
-  '../../../acrobat/blocks/verb-widget/verb-widget.js'
+  '../../../dc-shared/blocks/verb-widget/verb-widget.js'
 );
 import { getConfig, setConfig } from 'https://main--milo--adobecom.aem.live/libs/utils/utils.js';
 
@@ -31,7 +31,7 @@ describe('verb-widget block', () => {
   it('show upsell', async () => {
     document.cookie = 's_ta_cm_p_ops=1';
     const conf = getConfig();
-    setConfig({ ...conf, locale: { prefix: '' }, codeRoot: '/acrobat' });
+    setConfig({ ...conf, locale: { prefix: '' }, codeRoot: '/dc-shared' });
     const block = document.body.querySelector('.verb-widget');
     await init(block);
     expect(document.querySelector('.verb-widget .verb-upsell-heading')).to.exist;
