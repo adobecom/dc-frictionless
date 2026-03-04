@@ -284,8 +284,7 @@ const CONFIG = {
     pdfViewerReportSuite: 'adbadobedxqa',
   },
   stage: {
-    // edgeConfigId: 'e065836d-be57-47ef-b8d1-999e1657e8fd',
-    edgeConfigId: '888b1f82-9c29-4114-a654-a94055188fdb',
+    edgeConfigId: 'e065836d-be57-47ef-b8d1-999e1657e8fd',
     marTechUrl: 'https://www.stage.adobe.com/marketingtech/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js',
     pdfViewerClientId: '5bfb3a784f2642f88ecf9d2ff4cd573e',
     pdfViewerReportSuite: 'adbadobedxqa',
