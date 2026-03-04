@@ -26,7 +26,7 @@ export const [setLibs, getLibs] = (() => {
       libs = (() => {
         const { hostname, search } = location || window.location;
         if (hostname === 'acrobat.adobe.com') return 'https://www.adobe.com/libs';
-        if (hostname === 'stage.acrobat.adobe.com') return 'https://www.stage.adobe.com/libs';
+        if (hostname === 'stage.acrobat.adobe.com' && !(new URLSearchParams(search).get('milolibs'))) return 'https://www.stage.adobe.com/libs';
         if (!['.aem.', '.hlx.', '.stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
         // eslint-disable-next-line compat/compat
         const branch = new URLSearchParams(search).get('milolibs') || 'main';
