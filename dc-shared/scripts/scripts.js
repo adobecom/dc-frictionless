@@ -400,14 +400,18 @@ function replaceDotMedia(area = document) {
   const currUrl = new URL(window.location);
   const pathSeg = currUrl.pathname.split('/').length;
   if ((prefix === '' && pathSeg >= 3) || (prefix !== '' && pathSeg >= 4)) return;
-  const resetAttributeBase = (tag, attr) => {
-    area.querySelectorAll(`${tag}[${attr}^="./media_"]`).forEach((el) => {
+  const resetAttributeBase = (scope, tag, attr) => {
+    scope.querySelectorAll(`${tag}[${attr}^="./media_"]`).forEach((el) => {
       // eslint-disable-next-line compat/compat
       el[attr] = `${new URL(`${CONFIG.contentRoot}${el.getAttribute(attr).substring(1)}`, window.location).href}`;
     });
   };
-  resetAttributeBase('img', 'src');
-  resetAttributeBase('source', 'srcset');
+  [document.head, area].forEach((scope) => {
+    if (!scope) return;
+    resetAttributeBase(scope, 'img', 'src');
+    resetAttributeBase(scope, 'source', 'srcset');
+    resetAttributeBase(scope, 'link', 'href');
+  });
 }
 
 replaceDotMedia(document);
