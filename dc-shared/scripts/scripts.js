@@ -414,7 +414,19 @@ function replaceDotMedia(area = document) {
   });
 }
 
-replaceDotMedia(document);
+function runReplaceDotMedia() {
+  replaceDotMedia(document);
+}
+
+runReplaceDotMedia();
+
+// Head may be populated or updated after this script runs; observe and fix media paths when head content is added
+if (document.head) {
+  const headObserver = new MutationObserver(() => {
+    replaceDotMedia(document.head);
+  });
+  headObserver.observe(document.head, { childList: true, subtree: true });
+}
 
 // Default to loading the first image as eager.
 (async function loadLCPImage() {
