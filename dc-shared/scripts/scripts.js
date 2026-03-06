@@ -395,11 +395,14 @@ if (IMS_GUEST) {
 
 const { ietf, prefix } = getLocale(locales);
 
+const SPLASH_LOADER_SELECTOR = '.fragment.splash-loader';
+
 function replaceDotMedia(area = document) {
   // eslint-disable-next-line compat/compat
   const currUrl = new URL(window.location);
   const pathSeg = currUrl.pathname.split('/').length;
-  if ((prefix === '' && pathSeg >= 3) || (prefix !== '' && pathSeg >= 4)) return;
+  // Only skip by path depth when processing the whole document (not when processing a late-loaded fragment)
+  if (area === document && ((prefix === '' && pathSeg >= 3) || (prefix !== '' && pathSeg >= 4))) return;
   const resetAttributeBase = (tag, attr) => {
     area.querySelectorAll(`${tag}[${attr}^="./media_"]`).forEach((el) => {
       // eslint-disable-next-line compat/compat
@@ -412,6 +415,21 @@ function replaceDotMedia(area = document) {
 }
 
 replaceDotMedia(document);
+
+if (document.body) {
+  const bodyObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+        const fragment = node.matches?.(SPLASH_LOADER_SELECTOR)
+          ? node
+          : node.querySelector?.(SPLASH_LOADER_SELECTOR);
+        if (fragment) replaceDotMedia(fragment);
+      });
+    });
+  });
+  bodyObserver.observe(document.body, { childList: true, subtree: true });
+}
 
 // Default to loading the first image as eager.
 (async function loadLCPImage() {
