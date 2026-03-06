@@ -395,48 +395,23 @@ if (IMS_GUEST) {
 
 const { ietf, prefix } = getLocale(locales);
 
-const SPLASH_LOADER_SELECTOR = '.fragment.splash-loader';
-
 function replaceDotMedia(area = document) {
   // eslint-disable-next-line compat/compat
   const currUrl = new URL(window.location);
   const pathSeg = currUrl.pathname.split('/').length;
-  const skipBody = (prefix === '' && pathSeg >= 3) || (prefix !== '' && pathSeg >= 4);
-  const resetAttributeBase = (scope, tag, attr) => {
-    if (!scope) return;
-    scope.querySelectorAll(`${tag}[${attr}^="./media_"]`).forEach((el) => {
+  if ((prefix === '' && pathSeg >= 3) || (prefix !== '' && pathSeg >= 4)) return;
+  const resetAttributeBase = (tag, attr) => {
+    area.querySelectorAll(`${tag}[${attr}^="./media_"]`).forEach((el) => {
       // eslint-disable-next-line compat/compat
       el[attr] = `${new URL(`${CONFIG.contentRoot}${el.getAttribute(attr).substring(1)}`, window.location).href}`;
     });
   };
-  const processScope = (scope) => {
-    resetAttributeBase(scope, 'img', 'src');
-    resetAttributeBase(scope, 'source', 'srcset');
-    resetAttributeBase(scope, 'link', 'href');
-  };
-  // Always process splash loader fragment (lives outside main, may be added later)
-  document.querySelectorAll(SPLASH_LOADER_SELECTOR).forEach(processScope);
-  if (skipBody && area === document) return;
-  processScope(area);
+  resetAttributeBase('img', 'src');
+  resetAttributeBase('source', 'srcset');
+  resetAttributeBase('video', 'poster');
 }
 
 replaceDotMedia(document);
-
-// When splash loader fragment is added to body (outside main), update its media paths
-if (document.body) {
-  const bodyObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        if (node.nodeType !== Node.ELEMENT_NODE) return;
-        const fragment = node.matches?.(SPLASH_LOADER_SELECTOR)
-          ? node
-          : node.querySelector?.(SPLASH_LOADER_SELECTOR);
-        if (fragment) replaceDotMedia(fragment);
-      });
-    });
-  });
-  bodyObserver.observe(document.body, { childList: true, subtree: true });
-}
 
 // Default to loading the first image as eager.
 (async function loadLCPImage() {
