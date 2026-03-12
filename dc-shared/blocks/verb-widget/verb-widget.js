@@ -497,7 +497,7 @@ async function showUpSell(verb, element) {
 
 // Errors, Analytics & Logging
 const lanaOptions = {
-  sampleRate: 100,
+  sampleRate: 1,
   tags: 'DC_Milo,Project Unity (DC)',
 };
 
