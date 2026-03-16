@@ -96,7 +96,7 @@ export const localeMap = {
   vn_vi: 'en-us',
 };
 
-function getUnityLibs(prodLibs = 'https://milo.adobe.com/unitylibs') {
+function getUnityLibs(prodLibs = '/unitylibs') {
   const { hostname, search } = window.location;
   if (hostname === 'acrobat.adobe.com') return 'https://milo.adobe.com/unitylibs';
   if (hostname === 'stage.acrobat.adobe.com' && !(new URLSearchParams(search).get('unitylibs'))) return 'https://milo.stage.adobe.com/unitylibs';
