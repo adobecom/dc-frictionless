@@ -25,7 +25,7 @@ const RNR_API_KEY = 'dc-general';
 
 // Errors, Analytics & Logging
 const lanaOptions = {
-  sampleRate: 100,
+  sampleRate: 10,
   tags: 'DC_Milo, RnR Block',
 };
 
@@ -90,7 +90,7 @@ function processNumberOption(value, minValue, maxValue, defaultValue) {
 }
 
 function extractMetadata(options) {
-  metadata.verb = options.verb;
+  metadata.verb = options.verb?.trim() || '';
   metadata.hideTitleOnUninteractive = options.hidetitle ? options.hidetitle === 'true' : true;
   metadata.initialValue = snapshot
     ? snapshot.rating
@@ -225,6 +225,9 @@ function setJsonLdProductInfo() {
 // #endregion
 
 async function loadRnrData() {
+  if (!metadata.verb?.trim()) {
+    return;
+  }
   try {
     const token = await getAndValidateImsToken('load review data');
     if (!token) return;
