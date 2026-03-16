@@ -25,7 +25,7 @@ describe.skip('Test utils.js', () => {
       'https://www.stage.adobe.com'
     );    
     const libs = setLibs('/libs');
-    expect(libs).toBe('https://milo.adobe.com/libs');
+    expect(libs).toBe('https://www.adobe.com/libs');
   });  
 
   it('tests setLibs for milolibs local', async () => {

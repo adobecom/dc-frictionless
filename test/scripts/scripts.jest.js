@@ -28,7 +28,7 @@ describe.skip('Test scripts', () => {
       value: userAgent,
       configurable: true,
     });
-    jest.mock('https://milo.adobe.com/libs/utils/utils.js', () => ({
+    jest.mock('https://www.adobe.com/libs/utils/utils.js', () => ({
       loadArea: jest.fn(),
       loadScript: jest.fn(),
       loadLana: jest.fn(),
@@ -110,7 +110,7 @@ describe.skip('Test scripts', () => {
       await require('../../dc-shared/scripts/scripts.js');
       await delay(100);
       const config = await getConfig();
-      expect(config.miloLibs).toEqual('https://milo.stage.adobe.com/libs');
+      expect(config.miloLibs).toEqual('https://www.stage.adobe.com/libs');
     });
   });
 
