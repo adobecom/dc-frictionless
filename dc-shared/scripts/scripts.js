@@ -269,6 +269,7 @@ const CONFIG = {
   codeRoot: '/dc-shared',
   contentRoot: '/dc-shared',
   imsClientId: 'acrobatmiloguest',
+  fedContentOrgin: 'https://milo.adobe.com',
   commerce: { checkoutClientId: 'doc_cloud' },
   local: {
     edgeConfigId: 'e065836d-be57-47ef-b8d1-999e1657e8fd',
