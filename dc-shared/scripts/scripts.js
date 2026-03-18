@@ -23,8 +23,8 @@ document.querySelectorAll('a').forEach((p, idx) => {
  */
 const setLibs = (prodLibs, location = window.location) => {
   const { hostname, search } = location;
-  if (hostname === 'acrobat.adobe.com') return 'https://www.adobe.com/libs';
-  if (hostname === 'stage.acrobat.adobe.com') return 'https://www.stage.adobe.com/libs';
+  if (hostname === 'acrobat.adobe.com') return 'https://milo.adobe.com/libs';
+  if (hostname === 'stage.acrobat.adobe.com') return 'https://milo.stage.adobe.com/libs';
   if (!['.aem.', '.hlx.', '.stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
   // eslint-disable-next-line compat/compat
   const branch = new URLSearchParams(search).get('milolibs') || 'main';
@@ -168,7 +168,7 @@ const locales = {
   ar: { ietf: 'es-AR', tk: 'oln4yqj.css' },
   br: { ietf: 'pt-BR', tk: 'inq1xob.css' },
   ca: { ietf: 'en-CA', tk: 'pps7abe.css' },
-  ca_fr: { ietf: 'fr-CA', tk: 'vrk5vyv.css' },
+  ca_fr: { ietf: 'fr-CA', tk: 'vrk5vyv.css', base: 'fr' },
   cl: { ietf: 'es-CL', tk: 'oln4yqj.css' },
   co: { ietf: 'es-CO', tk: 'oln4yqj.css' },
   la: { ietf: 'es', tk: 'oln4yqj.css' },
@@ -177,7 +177,7 @@ const locales = {
   '': { ietf: 'en-US', tk: 'hah7vzn.css' },
   // EMEA
   africa: { ietf: 'en', tk: 'pps7abe.css' },
-  be_fr: { ietf: 'fr-BE', tk: 'vrk5vyv.css' },
+  be_fr: { ietf: 'fr-BE', tk: 'vrk5vyv.css', base: 'fr' },
   be_en: { ietf: 'en-BE', tk: 'pps7abe.css' },
   be_nl: { ietf: 'nl-BE', tk: 'cya6bri.css' },
   cy_en: { ietf: 'en-CY', tk: 'pps7abe.css' },
@@ -194,7 +194,7 @@ const locales = {
   lt: { ietf: 'lt-LT', tk: 'aaz7dvd.css' },
   lu_de: { ietf: 'de-LU', tk: 'vin7zsi.css' },
   lu_en: { ietf: 'en-LU', tk: 'pps7abe.css' },
-  lu_fr: { ietf: 'fr-LU', tk: 'vrk5vyv.css' },
+  lu_fr: { ietf: 'fr-LU', tk: 'vrk5vyv.css', base: 'fr' },
   hu: { ietf: 'hu-HU', tk: 'aaz7dvd.css' },
   mt: { ietf: 'en-MT', tk: 'pps7abe.css' },
   mena_en: { ietf: 'en', tk: 'pps7abe.css' },
@@ -207,7 +207,7 @@ const locales = {
   ch_de: { ietf: 'de-CH', tk: 'vin7zsi.css' },
   si: { ietf: 'sl-SI', tk: 'aaz7dvd.css' },
   sk: { ietf: 'sk-SK', tk: 'aaz7dvd.css' },
-  ch_fr: { ietf: 'fr-CH', tk: 'vrk5vyv.css' },
+  ch_fr: { ietf: 'fr-CH', tk: 'vrk5vyv.css', base: 'fr' },
   fi: { ietf: 'fi-FI', tk: 'aaz7dvd.css' },
   se: { ietf: 'sv-SE', tk: 'fpk1pcd.css' },
   ch_it: { ietf: 'it-CH', tk: 'bbf5pok.css' },
@@ -269,6 +269,7 @@ const CONFIG = {
   codeRoot: '/dc-shared',
   contentRoot: '/dc-shared',
   imsClientId: 'acrobatmiloguest',
+  fedContentOrgin: 'https://milo.adobe.com',
   commerce: { checkoutClientId: 'doc_cloud' },
   local: {
     edgeConfigId: 'e065836d-be57-47ef-b8d1-999e1657e8fd',
@@ -285,7 +286,7 @@ const CONFIG = {
   },
   stage: {
     edgeConfigId: 'e065836d-be57-47ef-b8d1-999e1657e8fd',
-    marTechUrl: 'https://www.stage.adobe.com/marketingtech/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js',
+    marTechUrl: 'https://milo.stage.adobe.com/marketingtech/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js',
     pdfViewerClientId: '5bfb3a784f2642f88ecf9d2ff4cd573e',
     pdfViewerReportSuite: 'adbadobedxqa',
   },
@@ -322,6 +323,7 @@ const CONFIG = {
       'helpx.adobe.com': 'helpx.adobe.com',
       'milo.adobe.com': 'milo.adobe.com',
       'news.adobe.com': 'news.adobe.com',
+      '(?<!stage\\.)acrobat\\.adobe\\.com': 'stage.acrobat.adobe.com',
     },
     '--dc-frictionless--adobecom.(hlx|aem).live': {
       'acrobat.adobe.com': 'acrobat.adobe.com',
@@ -343,6 +345,7 @@ const CONFIG = {
       'helpx.adobe.com': 'helpx.stage.adobe.com',
       'milo.adobe.com': 'milo-stage.corp.adobe.com',
       'news.adobe.com': 'news.stage.adobe.com',
+      '(?<!stage\\.)acrobat\\.adobe\\.com': 'stage.acrobat.adobe.com',
     },
     '.graybox.adobe.com': { 'www.adobe.com': 'origin' },
     '.business-graybox.adobe.com': { 'business.adobe.com': 'origin' },
@@ -357,6 +360,12 @@ const CONFIG = {
     /www\.adobe\.com\/(\w\w(_\w\w)?\/)?go(\/.*)?/,
     /www\.adobe\.com\/(\w\w(_\w\w)?\/)?learn(\/.*)?/,
   ],
+  uniqueSiteId: 'da-dc',
+  mepLingoCountryToRegion: {
+    africa: ['ke', 'mu', 'ng', 'za'],
+    la: ['bo', 'cr', 'do', 'ec', 'gt', 'pa', 'pr', 'py', 'sv', 'uy', 've', 'ar', 'co', 'cl', 'mx', 'pe'],
+    mena_en: ['bh', 'dz', 'iq', 'ir', 'jo', 'lb', 'ly', 'om', 'ps', 'sy', 'tn', 'ye'],
+  },
   imsScope: 'AdobeID,openid,gnav,pps.read,firefly_api,additional_info.roles,read_organizations,account_cluster.read',
 };
 
@@ -414,7 +423,7 @@ replaceDotMedia(document);
 
 // Default to loading the first image as eager.
 (async function loadLCPImage() {
-  const blocks = '.marquee,.hero-marquee';
+  const blocks = '.marquee,.hero-marquee,.study-marquee';
   const marquee = document.querySelector(blocks); // first marquee only
   if (marquee) {
     if (window?.browser?.isMobile) {
