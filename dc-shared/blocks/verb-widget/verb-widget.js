@@ -497,7 +497,7 @@ async function showUpSell(verb, element) {
 
 // Errors, Analytics & Logging
 const lanaOptions = {
-  sampleRate: 100,
+  sampleRate: 1,
   tags: 'DC_Milo,Project Unity (DC)',
 };
 
@@ -807,6 +807,7 @@ export default async function init(element) {
     infoIcon.classList.add('mobile');
   } else if (isTablet) {
     widget.classList.add('tablet');
+    infoIcon.classList.add('tablet');
   }
 
   widgetLeft.append(widgetHeader, widgetHeading, errorState);
@@ -868,7 +869,7 @@ export default async function init(element) {
 
     if (isMobile && !isTablet) {
       widgetImage.after(widgetImage);
-      iconSecurity.remove(iconSecurity);
+      iconSecurity.remove();
       footer.prepend(infoIcon);
     }
   }
