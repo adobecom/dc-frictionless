@@ -1,5 +1,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://milo.adobe.com" crossorigin>
+<!-- CJK Typekit: run before deferred scripts.js so kit CSS (and preconnect to font hosts) start before /libs fetch. -->
+<script>
+  (function () {
+    var kits = { cn: 'puu3xkp', hk_zh: 'jay0ecd', tw: 'jay0ecd', jp: 'dvg6awq', kr: 'qjs5sfm' };
+    var segs = location.pathname.split('/').filter(Boolean);
+    var loc = segs[0] === 'langstore' && segs[1] ? segs[1] : segs[0];
+    var kit = kits[loc];
+    if (!kit) return;
+    var h = document.head;
+    function preconnect(href) {
+      if (h.querySelector('link[rel="preconnect"][href="' + href + '"]')) return;
+      var l = document.createElement('link');
+      l.rel = 'preconnect';
+      l.href = href;
+      l.crossOrigin = 'anonymous';
+      h.appendChild(l);
+    }
+    preconnect('https://use.typekit.net');
+    preconnect('https://p.typekit.net');
+    var css = 'https://use.typekit.net/' + kit + '.css';
+    if (h.querySelector('link[href="' + css + '"]')) return;
+    var preload = document.createElement('link');
+    preload.rel = 'preload';
+    preload.as = 'style';
+    preload.href = css;
+    preload.setAttribute('fetchpriority', 'high');
+    h.appendChild(preload);
+    var sheet = document.createElement('link');
+    sheet.rel = 'stylesheet';
+    sheet.href = css;
+    sheet.setAttribute('fetchpriority', 'high');
+    h.appendChild(sheet);
+  })();
+</script>
 <script src="/dc-shared/scripts/scripts.js" type="module"></script>
 <style>body { display: none; }</style>
 <link rel="icon" href="data:,">
@@ -60,21 +94,6 @@
   const miloLibs = setLibs('/libs');
   const unityLibs = getUnityLibs();
   const localePrefix =  extractLocalePrefix();
-
-  const TYPEKIT_KITS = { cn: 'puu3xkp', hk_zh: 'jay0ecd', tw: 'jay0ecd', jp: 'dvg6awq', kr: 'qjs5sfm' };
-  const typekitKit = TYPEKIT_KITS[window.location.pathname.split('/').filter(Boolean)[0]];
-  if (typekitKit) {
-    ['https://use.typekit.net', 'https://p.typekit.net'].forEach((href) => {
-      if (!document.head.querySelector(`link[rel="preconnect"][href="${href}"]`)) {
-        const l = document.createElement('link');
-        l.rel = 'preconnect';
-        l.href = href;
-        l.crossOrigin = 'anonymous';
-        document.head.appendChild(l);
-      }
-    });
-    loadLink(`https://use.typekit.net/${typekitKit}.css`, { rel: 'stylesheet', fetchpriority: 'high' });
-  }
 
   const preloads = document.querySelector('meta[name="preloads"]')?.content?.split(',').map(x => x.trim().replace('$MILOLIBS', miloLibs).replace('$UNITYLIBS', unityLibs).replace('$LOCALEPREFIX', localePrefix)) || [];
   preloads.forEach((link) => {
