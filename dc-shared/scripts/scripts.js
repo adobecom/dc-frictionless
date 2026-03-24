@@ -405,6 +405,11 @@ if (IMS_GUEST) {
 const { ietf, prefix, tk } = getLocale(locales);
 
 const TYPEKIT_EARLY_IETFS = ['zh-TW', 'ja-JP', 'ko-KR'];
+const TYPEKIT_CJK_FONT_SAMPLE = {
+  'zh-TW': '\u4e00',
+  'ja-JP': '\u3042',
+  'ko-KR': '\uac00',
+};
 function getTypekitStylesheetHref(tk) {
   const kitId = String(tk || '').replace(/\.css$/i, '');
   return kitId ? `https://use.typekit.net/${kitId}.css` : '';
@@ -414,6 +419,43 @@ if (TYPEKIT_EARLY_IETFS.includes(ietf) && document.head) {
   if (href) {
     loadLink(href, { rel: 'stylesheet', fetchpriority: 'high' });
   }
+}
+
+function whenTypekitStylesheetLoaded() {
+  const href = getTypekitStylesheetHref(tk);
+  if (!href || !TYPEKIT_EARLY_IETFS.includes(ietf)) return Promise.resolve();
+  const el = document.head.querySelector(`link[href="${href}"]`);
+  if (!el) return Promise.resolve();
+  if (el.sheet) return Promise.resolve();
+  return new Promise((resolve) => {
+    const done = () => resolve();
+    el.addEventListener('load', done, { once: true });
+    el.addEventListener('error', done, { once: true });
+    setTimeout(done, 2500);
+  });
+}
+
+/**
+ * Typekit CSS can load early, but browsers often defer woff2 until text uses the face — marquee then FOUTs.
+ * Prime adobe-clean with a script-local glyph so downloads start before loadArea paints blocks.
+ */
+async function primeTypekitFontsForMarquee() {
+  // eslint-disable-next-line compat/compat
+  if (!TYPEKIT_EARLY_IETFS.includes(ietf) || !document.fonts?.load) return;
+  const sample = TYPEKIT_CJK_FONT_SAMPLE[ietf];
+  if (!sample) return;
+  const weights = ['300', '400', '700'];
+  const families = ['adobe-clean', '"Adobe Clean"'];
+  const loads = [];
+  families.forEach((fam) => {
+    weights.forEach((w) => {
+      loads.push(document.fonts.load(`${w} 32px ${fam}`, sample).catch(() => {}));
+    });
+  });
+  await Promise.race([
+    Promise.all(loads),
+    new Promise((resolve) => { setTimeout(resolve, 4000); }),
+  ]);
 }
 
 function replaceDotMedia(area = document) {
@@ -544,6 +586,9 @@ async function loadPage() {
   });
 
   loadLana({ clientId: 'dxdc', tags: 'DC_Milo' });
+
+  await whenTypekitStylesheetLoaded();
+  await primeTypekitFontsForMarquee();
 
   await loadArea(document, false);
 
