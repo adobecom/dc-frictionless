@@ -61,6 +61,20 @@
   const unityLibs = getUnityLibs();
   const localePrefix =  extractLocalePrefix();
 
+  const TYPEKIT_KITS = { cn: 'puu3xkp', hk_zh: 'jay0ecd', tw: 'jay0ecd', jp: 'dvg6awq', kr: 'qjs5sfm' };
+  const typekitKit = TYPEKIT_KITS[window.location.pathname.split('/').filter(Boolean)[0]];
+  if (typekitKit) {
+    ['https://use.typekit.net', 'https://p.typekit.net'].forEach((href) => {
+      if (!document.head.querySelector(`link[rel="preconnect"][href="${href}"]`)) {
+        const l = document.createElement('link');
+        l.rel = 'preconnect';
+        l.href = href;
+        l.crossOrigin = 'anonymous';
+        document.head.appendChild(l);
+      }
+    });
+    loadLink(`https://use.typekit.net/${typekitKit}.css`, { rel: 'stylesheet', fetchpriority: 'high' });
+  }
 
   const preloads = document.querySelector('meta[name="preloads"]')?.content?.split(',').map(x => x.trim().replace('$MILOLIBS', miloLibs).replace('$UNITYLIBS', unityLibs).replace('$LOCALEPREFIX', localePrefix)) || [];
   preloads.forEach((link) => {
