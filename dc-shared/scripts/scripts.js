@@ -402,7 +402,19 @@ if (IMS_GUEST) {
   };
 }
 
-const { ietf, prefix } = getLocale(locales);
+const { ietf, prefix, tk } = getLocale(locales);
+
+const TYPEKIT_EARLY_IETFS = ['zh-TW', 'ja-JP', 'ko-KR'];
+function getTypekitStylesheetHref(tk) {
+  const kitId = String(tk || '').replace(/\.css$/i, '');
+  return kitId ? `https://use.typekit.net/${kitId}.css` : '';
+}
+if (TYPEKIT_EARLY_IETFS.includes(ietf) && document.head) {
+  const href = getTypekitStylesheetHref(tk);
+  if (href) {
+    loadLink(href, { rel: 'stylesheet', fetchpriority: 'high' });
+  }
+}
 
 function replaceDotMedia(area = document) {
   // eslint-disable-next-line compat/compat
