@@ -7,5 +7,5 @@ Resolves: [MWPW-XXXXXX](https://jira.corp.adobe.com/browse/MWPW-XXXXXX)
 
 ## Test URLs
 <!-- List the URLs where the changes can be tested -->
-- https://main--dc-frictionless--adobecom.aem.live/heic-to-pdf
+- https://stage--dc-frictionless--adobecom.aem.live/heic-to-pdf
 - https://mwpw-XXXXXX--dc-frictionless--adobecom.aem.live/heic-to-pdf
