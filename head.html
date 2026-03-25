@@ -1,5 +1,4 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="preconnect" href="https://milo.adobe.com" crossorigin>
 <script src="/dc-shared/scripts/scripts.js" type="module"></script>
 <style>body { display: none; }</style>
 <link rel="icon" href="data:,">
@@ -7,23 +6,19 @@
 <script>
   window.setLibs = (prodLibs, location = window.location) => {
     const { hostname, search } = location;
-    if (hostname === 'acrobat.adobe.com') return 'https://milo.adobe.com/libs';
-    if (hostname === 'stage.acrobat.adobe.com') return 'https://milo.stage.adobe.com/libs';
-    if (!['.aem.', '.hlx.', '.stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
+    if (!['.aem.', '.hlx.', 'stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
     const branch = new URLSearchParams(search).get('milolibs') || 'main';
-    if (branch === 'main' && hostname === 'www.stage.adobe.com') return '/libs';
+    if (branch === 'main' && hostname === 'stage.acrobat.adobe.com') return prodLibs;
     if (branch === 'local') return 'http://localhost:6456/libs';
     const env = hostname.includes('.hlx.') ? 'hlx' : 'aem';
     return `https://${branch}${branch.includes('--') ? '' : '--milo--adobecom'}.${env}.live/libs`;
   };
 
-  window.getUnityLibs = (prodLibs = 'https://milo.adobe.com/unitylibs') => {
+  window.getUnityLibs = (prodLibs = '/dc-shared/unitylibs') => {
     const { hostname, search } = window.location;
-    if (hostname === 'acrobat.adobe.com') return 'https://milo.adobe.com/unitylibs';
-    if (hostname === 'stage.acrobat.adobe.com') return 'https://milo.stage.adobe.com/unitylibs';
-    if (!['.aem.', '.hlx.', '.stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
+    if (!['.aem.', '.hlx.', 'stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
     const branch = new URLSearchParams(search).get('unitylibs') || 'main';
-    if (branch === 'main' && hostname === 'www.stage.adobe.com') return prodLibs;
+    if (branch === 'main' && hostname === 'stage.acrobat.adobe.com') return prodLibs;
     const env = hostname.includes('.hlx.') ? 'hlx' : 'aem';
     return `https://${branch}${branch.includes('--')? '' : '--unity--adobecom'}.${env}.live/unitylibs`;
   }
@@ -57,7 +52,7 @@
     return link;
   }
 
-  const miloLibs = setLibs('/libs');
+  const miloLibs = setLibs('/dc-shared/libs');
   const unityLibs = getUnityLibs();
   const localePrefix =  extractLocalePrefix();
 

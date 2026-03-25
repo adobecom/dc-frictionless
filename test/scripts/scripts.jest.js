@@ -28,7 +28,7 @@ describe.skip('Test scripts', () => {
       value: userAgent,
       configurable: true,
     });
-    jest.mock('https://milo.adobe.com/libs/utils/utils.js', () => ({
+    jest.mock('/dc-shared/libs/utils/utils.js', () => ({
       loadArea: jest.fn(),
       loadScript: jest.fn(),
       loadLana: jest.fn(),
