@@ -33,6 +33,22 @@ const setLibs = (prodLibs, location = window.location) => {
   return `https://${branch}${branch.includes('--') ? '' : '--milo--adobecom'}.aem.live/libs`;
 };
 
+/** Preconnect + preload Typekit for zh/ja/ko before Milo's deferred loadFonts to reduce font-weight flicker. */
+function preloadCjkAdobeTypekit(locale) {
+  const { tk, ietf: locIetf } = locale || {};
+  if (!tk || !locIetf || !/^(zh|ja|ko)(-|$)/i.test(locIetf)) return;
+
+  if (!document.querySelector(`link[rel="preconnect"][href="${TYPEKIT_ORIGIN}"]`)) {
+    loadLink(TYPEKIT_ORIGIN, { rel: 'preconnect', crossorigin: '' });
+  }
+
+  const href = tk.endsWith('.css') ? `${TYPEKIT_ORIGIN}/${tk}` : `${TYPEKIT_ORIGIN}/${tk}.js`;
+  const preloadOpts = tk.endsWith('.css')
+    ? { rel: 'preload', as: 'style' }
+    : { rel: 'preload', as: 'script', crossorigin: 'anonymous' };
+  loadLink(href, preloadOpts);
+}
+
 const getLocale = (locales, pathname = window.location.pathname) => {
   if (!locales) {
     return { ietf: 'en-US', tk: 'hah7vzn.css', prefix: '' };
@@ -404,7 +420,9 @@ if (IMS_GUEST) {
   };
 }
 
-const { ietf, prefix } = getLocale(locales);
+const pageLocale = getLocale(locales);
+const { ietf, prefix } = pageLocale;
+preloadCjkAdobeTypekit(pageLocale);
 
 function replaceDotMedia(area = document) {
   // eslint-disable-next-line compat/compat
