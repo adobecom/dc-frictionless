@@ -125,16 +125,16 @@ export async function responseProvider(request) {
     // Change relative paths to absolute. Remove JS-driven CSP in favor of HTTP header.
     let inlineScript = scripts
       .replace('await import(\'./contentSecurityPolicy/csp.js\')', '{default:()=>{}}')
-      .replace('await import(\'./dcLana.js\')', 'await import(\'//scripts/dcLana.js\')')
-      .replace('await import(\'./susiAuthHandler.js\')', 'await import(\'//scripts/susiAuthHandler.js\')')
-      .replace('await import(\'./geo-phoneNumber.js\')', 'await import(\'//scripts/geo-phoneNumber.js\')')
-      .replace('await import(\'./tooltips.js\')', 'await import(\'//scripts/tooltips.js\')')
-      .replace('await import(\'./imageReplacer.js\')', 'await import(\'//scripts/imageReplacer.js\')');
+      .replace('await import(\'./dcLana.js\')', 'await import(\'/scripts/dcLana.js\')')
+      .replace('await import(\'./susiAuthHandler.js\')', 'await import(\'/scripts/susiAuthHandler.js\')')
+      .replace('await import(\'./geo-phoneNumber.js\')', 'await import(\'/scripts/geo-phoneNumber.js\')')
+      .replace('await import(\'./tooltips.js\')', 'await import(\'/scripts/tooltips.js\')')
+      .replace('await import(\'./imageReplacer.js\')', 'await import(\'/scripts/imageReplacer.js\')');
 
     if (!(mobileWidget && request.device.isMobile) && !unityWorkflow) {
       inlineScript = dcConverter
         .replace('export default', 'const dcConverter = ')
-        .replace('import(\'../../scripts/frictionless.js\')', 'import(\'//scripts/frictionless.js\')')
+        .replace('import(\'../../scripts/frictionless.js\')', 'import(\'/scripts/frictionless.js\')')
       + inlineScript
         .replace('const { default: dcConverter } = await import(`../blocks/${blockName}/${blockName}.js`);', '')
     } 
@@ -203,11 +203,11 @@ export async function responseProvider(request) {
       verbWidgetStyles
     ] = await Promise.all([
       fetchFrictionlessPageAndInlineSnippet(),
-      fetchResource('//scripts/scripts.js'),
-      fetchResource('//blocks/dc-converter-widget/dc-converter-widget.js'),
-      fetchResource('//styles/styles.css'),
+      fetchResource('/scripts/scripts.js'),
+      fetchResource('/blocks/dc-converter-widget/dc-converter-widget.js'),
+      fetchResource('/styles/styles.css'),
       fetchResource(`${miloBaseUrl}/libs/styles/styles.css`),
-      fetchResource('//blocks/verb-widget/verb-widget.css')
+      fetchResource('/blocks/verb-widget/verb-widget.css')
     ]);
 
     await inlineScripts(unityWorkflow, mobileWidget, scripts, dcConverter);

@@ -595,7 +595,7 @@ Then(/^I should see that the prices match on checkout from the (.*) merch card(?
 });
 
 Then(/^I scroll to the "([^"]*)" header$/, async function (header) {
-  let xpath = `//*[self::h1 or self::h2 or self::h3][starts-with(text(),'${header}')]`;
+  let xpath = `/*[self::h1 or self::h2 or self::h3][starts-with(text(),'${header}')]`;
   await this.page.native.locator(xpath).waitFor({timeout: 5000});
   await this.page.native.evaluate((xpath) => {
     const element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;

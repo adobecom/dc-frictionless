@@ -5,10 +5,10 @@ export class PdfWidgetSection extends Section {
     super();
     this.buildProps({
       selectButton: '#lifecycle-nativebutton',
-      fileUploadInput: '//input[contains(@class,"FileUpload")]',
-      dropZoneInput: '//input[contains(@class,"DropzoneContent")]',
+      fileUploadInput: '/input[contains(@class,"FileUpload")]',
+      dropZoneInput: '/input[contains(@class,"DropzoneContent")]',
       downloadButton: 'button[data-test-id="download"], button[data-testid*="download"]',
-      filenameHeader: '//div[contains(@class, "FilenameHeader__name")]',
+      filenameHeader: '/div[contains(@class, "FilenameHeader__name")]',
       selectFormat: 'button#select-format',
       convertButton: 'button[data-test-id*="convert"]',
       mergeButton: 'button[data-test-id*="merge"]',
@@ -21,9 +21,9 @@ export class PdfWidgetSection extends Section {
       dcWebDownload: 'button[aria-label="Download"]',
       dcWebFnsOverlay: '[data-testid="fns-overlay"]',
       dcWebHome: '[href*="/link/home"]',
-      dcWebDocumentsTab: '//div[@role="tab"]//span[text()="Documents"]/..',
-      dcWebCheckAllFiles: '//div[contains(@class, "Files")]//input[@title="Select All"]',
-      dcWebDelete: '//button[@data-test-id="delete-action-button"]',
+      dcWebDocumentsTab: '/div[@role="tab"]//span[text()="Documents"]/..',
+      dcWebCheckAllFiles: '/div[contains(@class, "Files")]//input[@title="Select All"]',
+      dcWebDelete: '/button[@data-test-id="delete-action-button"]',
       rotateRightButton: 'button[id="rotate-right"]',
       addSignature: 'div[data-testid*="add-signature"]',
       addInitials: 'div[data-testid*="add-initials"]',
@@ -35,7 +35,7 @@ export class PdfWidgetSection extends Section {
   }
 
   imageFormatItem(format) {
-    return this.native.locator(`//div[@role="option"]//span[text()="${format}"]/..`);
+    return this.native.locator(`/div[@role="option"]//span[text()="${format}"]/..`);
   }
 
   async uploadFiles(filePaths) {

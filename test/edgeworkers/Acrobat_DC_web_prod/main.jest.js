@@ -38,9 +38,9 @@ describe("EdgeWorker that consumes an HTML document and rewrites it", () => {
         } else {
           response = new HttpResponseMiloStyles();
         }
-      } else if (path.includes('//styles/styles.css')) {
+      } else if (path.includes('/styles/styles.css')) {
         response = new HttpResponseStyles();
-      } else if (path.includes('//blocks/verb-widget/verb-widget.css')) {
+      } else if (path.includes('/blocks/verb-widget/verb-widget.css')) {
         response = new HttpResponseVerbWidgetStyles();        
       } else {
         response = new HttpResponse404();

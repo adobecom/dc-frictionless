@@ -12,7 +12,7 @@ export default async function geoPhoneNumber() {
   || JSON.parse(sessionStorage.getItem('feds_location'))?.country?.toLowerCase()
   || '';
 
-  if (newLocale === 'us' || newLocale === '/' || newLocale === '//') {
+  if (newLocale === 'us' || newLocale === '/' || newLocale === '/') {
     newLocale = '/';
   } else {
     newLocale = `/${newLocale}/`;

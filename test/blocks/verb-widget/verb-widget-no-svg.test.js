@@ -15,7 +15,7 @@ describe('verb-widget block', () => {
   beforeEach(async () => {
     sinon.stub(window, 'fetch');
     window.fetch.callsFake((x) => {
-      if (x.endsWith('//blocks/verb-widget/icons/fillsign.svg')) {
+      if (x.endsWith('/blocks/verb-widget/icons/fillsign.svg')) {
         return Promise.resolve({
           ok: false,
           json: () => Promise.resolve({}),
