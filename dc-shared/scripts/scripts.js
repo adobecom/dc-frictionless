@@ -33,6 +33,7 @@ const setLibs = (prodLibs, location = window.location) => {
   return `https://${branch}${branch.includes('--') ? '' : '--milo--adobecom'}.aem.live/libs`;
 };
 
+const TYPEKIT_ORIGIN = 'https://use.typekit.net';
 /** Preconnect + preload Typekit for zh/ja/ko before Milo's deferred loadFonts to reduce font-weight flicker. */
 function preloadCjkAdobeTypekit(locale) {
   const { tk, ietf: locIetf } = locale || {};
