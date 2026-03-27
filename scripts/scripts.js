@@ -266,7 +266,7 @@ const locales = {
 
 // Add any config options.
 const CONFIG = {
-  codeRoot: '/dc-shared',
+  codeRoot: '/',
   contentRoot: '/dc-shared',
   imsClientId: 'acrobatmiloguest',
   fedContentOrigin: 'https://milo.adobe.com',
