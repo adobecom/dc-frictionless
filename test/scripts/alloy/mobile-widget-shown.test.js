@@ -3,7 +3,7 @@ import * as sinon from 'sinon';
 import { delay } from '../../helpers/waitfor.js';
 
 const { default: init } = await import(
-  '../../../dc-shared/scripts/alloy/mobile-widget-shown'
+  '../../..//scripts/alloy/mobile-widget-shown'
 );
 
 describe('Alloy mobile-widget-shown', () => {

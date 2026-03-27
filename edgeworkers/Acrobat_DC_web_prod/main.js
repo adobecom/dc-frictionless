@@ -125,16 +125,16 @@ export async function responseProvider(request) {
     // Change relative paths to absolute. Remove JS-driven CSP in favor of HTTP header.
     let inlineScript = scripts
       .replace('await import(\'./contentSecurityPolicy/csp.js\')', '{default:()=>{}}')
-      .replace('await import(\'./dcLana.js\')', 'await import(\'/dc-shared/scripts/dcLana.js\')')
-      .replace('await import(\'./susiAuthHandler.js\')', 'await import(\'/dc-shared/scripts/susiAuthHandler.js\')')
-      .replace('await import(\'./geo-phoneNumber.js\')', 'await import(\'/dc-shared/scripts/geo-phoneNumber.js\')')
-      .replace('await import(\'./tooltips.js\')', 'await import(\'/dc-shared/scripts/tooltips.js\')')
-      .replace('await import(\'./imageReplacer.js\')', 'await import(\'/dc-shared/scripts/imageReplacer.js\')');
+      .replace('await import(\'./dcLana.js\')', 'await import(\'//scripts/dcLana.js\')')
+      .replace('await import(\'./susiAuthHandler.js\')', 'await import(\'//scripts/susiAuthHandler.js\')')
+      .replace('await import(\'./geo-phoneNumber.js\')', 'await import(\'//scripts/geo-phoneNumber.js\')')
+      .replace('await import(\'./tooltips.js\')', 'await import(\'//scripts/tooltips.js\')')
+      .replace('await import(\'./imageReplacer.js\')', 'await import(\'//scripts/imageReplacer.js\')');
 
     if (!(mobileWidget && request.device.isMobile) && !unityWorkflow) {
       inlineScript = dcConverter
         .replace('export default', 'const dcConverter = ')
-        .replace('import(\'../../scripts/frictionless.js\')', 'import(\'/dc-shared/scripts/frictionless.js\')')
+        .replace('import(\'../../scripts/frictionless.js\')', 'import(\'//scripts/frictionless.js\')')
       + inlineScript
         .replace('const { default: dcConverter } = await import(`../blocks/${blockName}/${blockName}.js`);', '')
     } 
@@ -171,7 +171,7 @@ export async function responseProvider(request) {
     }
 
     // Remove external script reference
-    rewriter.onElement('script[src="/dc-shared/scripts/scripts.js"]', el => {
+    rewriter.onElement('script[src="//scripts/scripts.js"]', el => {
       el.replaceWith('');
     });
     // Can't put scripts.js in HEAD, loadPage needs the BODY to be parsed.
@@ -203,11 +203,11 @@ export async function responseProvider(request) {
       verbWidgetStyles
     ] = await Promise.all([
       fetchFrictionlessPageAndInlineSnippet(),
-      fetchResource('/dc-shared/scripts/scripts.js'),
-      fetchResource('/dc-shared/blocks/dc-converter-widget/dc-converter-widget.js'),
-      fetchResource('/dc-shared/styles/styles.css'),
+      fetchResource('//scripts/scripts.js'),
+      fetchResource('//blocks/dc-converter-widget/dc-converter-widget.js'),
+      fetchResource('//styles/styles.css'),
       fetchResource(`${miloBaseUrl}/libs/styles/styles.css`),
-      fetchResource('/dc-shared/blocks/verb-widget/verb-widget.css')
+      fetchResource('//blocks/verb-widget/verb-widget.css')
     ]);
 
     await inlineScripts(unityWorkflow, mobileWidget, scripts, dcConverter);
@@ -227,11 +227,11 @@ export async function responseProvider(request) {
     ];
     if (unityWorkflow) {
       headerLink = [...headerLink,
-        `</dc-shared/blocks/unity/unity.js>;rel="preload";as="script";crossorigin="anonymous"`,
-        `</dc-shared/blocks/unity/unity.css>;rel="preload";as="style"`,
-        `</dc-shared/blocks/verb-widget/verb-widget.js>;rel="preload";as="script";crossorigin="anonymous"`,
-        `</dc-shared/blocks/verb-widget/verb-widget.css>;rel="preload";as="style"`,
-        `</dc-shared/scripts/utils.js>;rel="preload";as="script";crossorigin="anonymous"`,
+        `<//blocks/unity/unity.js>;rel="preload";as="script";crossorigin="anonymous"`,
+        `<//blocks/unity/unity.css>;rel="preload";as="style"`,
+        `<//blocks/verb-widget/verb-widget.js>;rel="preload";as="script";crossorigin="anonymous"`,
+        `<//blocks/verb-widget/verb-widget.css>;rel="preload";as="style"`,
+        `<//scripts/utils.js>;rel="preload";as="script";crossorigin="anonymous"`,
         `<${miloBaseUrl}/libs/utils/utils.js>;rel="preload";as="script";crossorigin="anonymous"`,
         `<${miloBaseUrl}/libs/features/placeholders.js>;rel="preload";as="script";crossorigin="anonymous"`,
         `<${first === 'acrobat' ? '' : `/${first}`}/dc-shared/placeholders.json>;rel="preload";as="fetch";crossorigin="anonymous"`,

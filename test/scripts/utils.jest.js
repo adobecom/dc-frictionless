@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-//import { setLibs, getLibs } from '../../dc-shared/scripts/utils';
+//import { setLibs, getLibs } from '../..//scripts/utils';
 
 describe.skip('Test utils.js', () => {
   it('tests setLibs', async () => {

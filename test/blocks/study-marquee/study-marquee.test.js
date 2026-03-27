@@ -6,7 +6,7 @@ import { getConfig, setConfig } from 'https://main--milo--adobecom.aem.live/libs
 import { delay } from '../../helpers/waitfor.js';
 
 const { default: init, LIMITS } = await import(
-  '../../../dc-shared/blocks/study-marquee/study-marquee.js'
+  '../../..//blocks/study-marquee/study-marquee.js'
 );
 
 describe('study-marquee block', () => {

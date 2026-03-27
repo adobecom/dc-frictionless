@@ -5,7 +5,7 @@ import sinon from 'sinon';
 import { delay, waitForElement } from '../../helpers/waitfor.js';
 
 const { default: init } = await import(
-  '../../../dc-shared/blocks/verb-widget/verb-widget.js'
+  '../../..//blocks/verb-widget/verb-widget.js'
 );
 import { getConfig, setConfig } from 'https://main--milo--adobecom.aem.live/libs/utils/utils.js';
 

@@ -1,1 +1,1 @@
-const { devWidget } = import('../../dc-shared/scripts/devWidget');
+const { devWidget } = import('../..//scripts/devWidget');

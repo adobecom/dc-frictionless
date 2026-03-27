@@ -6,7 +6,7 @@ import { delay } from '../../helpers/waitfor.js';
 import { getConfig, setConfig } from 'https://main--milo--adobecom.aem.live/libs/utils/utils.js';
 
 const { default: init } = await import(
-  '../../../dc-shared/blocks/verb-widget/verb-widget.js'
+  '../../..//blocks/verb-widget/verb-widget.js'
 );
 
 describe('verb-widget block', () => {

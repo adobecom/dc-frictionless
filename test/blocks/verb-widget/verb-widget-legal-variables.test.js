@@ -6,7 +6,7 @@ import { getConfig, setConfig } from 'https://main--milo--adobecom.aem.live/libs
 import { delay } from '../../helpers/waitfor.js';
 
 const { default: init } = await import(
-  '../../../dc-shared/blocks/verb-widget/verb-widget.js'
+  '../../..//blocks/verb-widget/verb-widget.js'
 );
 
 describe('verb-widget legal text with LIMITS-based AI support', () => {
