@@ -34,20 +34,32 @@ const setLibs = (prodLibs, location = window.location) => {
 };
 
 const TYPEKIT_ORIGIN = 'https://use.typekit.net';
-/** Preconnect + preload Typekit for zh/ja/ko before Milo's deferred loadFonts to reduce font-weight flicker. */
+const TYPEKIT_FONT_ORIGIN = 'https://p.typekit.net';
+/**
+ * Warm Typekit hosts (preconnect) and load the kit stylesheet early. Preconnect alone does not fetch CSS/fonts.
+ * Browsers cannot preconnect a full URL path — only origins. The kit is always served as .css from use.typekit.net.
+ */
 function preloadCjkAdobeTypekit(locale) {
   const { tk, ietf: locIetf } = locale || {};
   if (!tk || !locIetf || !/^(zh|ja|ko)(-|$)/i.test(locIetf)) return;
 
-  if (!document.querySelector(`link[rel="preconnect"][href="${TYPEKIT_ORIGIN}"]`)) {
-    loadLink(TYPEKIT_ORIGIN, { rel: 'preconnect', crossorigin: '' });
-  }
+  [TYPEKIT_ORIGIN, TYPEKIT_FONT_ORIGIN].forEach((origin) => {
+    if (!document.querySelector(`link[rel="preconnect"][href="${origin}"]`)) {
+      loadLink(origin, { rel: 'preconnect', crossorigin: '' });
+    }
+  });
 
-  const href = tk.endsWith('.css') ? `${TYPEKIT_ORIGIN}/${tk}` : `${TYPEKIT_ORIGIN}/${tk}.js`;
-  const preloadOpts = tk.endsWith('.css')
-    ? { rel: 'preload', as: 'style' }
-    : { rel: 'preload', as: 'script', crossorigin: 'anonymous' };
-  loadLink(href, preloadOpts);
+  const kitId = String(tk).replace(/\.css$/i, '');
+  const href = `${TYPEKIT_ORIGIN}/${kitId}.css`;
+  // Apply stylesheet so @font-face is parsed; preload-only does not paint with those fonts.
+  // Avoid loadLink here: it dedupes by href only, so an existing rel=preload would block the stylesheet.
+  if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
+    const sheet = document.createElement('link');
+    sheet.rel = 'stylesheet';
+    sheet.href = href;
+    sheet.setAttribute('fetchpriority', 'high');
+    document.head.appendChild(sheet);
+  }
 }
 
 const getLocale = (locales, pathname = window.location.pathname) => {
