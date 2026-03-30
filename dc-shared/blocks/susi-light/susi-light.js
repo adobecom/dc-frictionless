@@ -4,7 +4,7 @@
 /* eslint-disable no-underscore-dangle */
 import { setLibs, getEnv } from '../../scripts/utils.js';
 
-const miloLibs = setLibs('/libs');
+const miloLibs = setLibs();
 const { createTag, loadScript, getConfig } = await import(`${miloLibs}/utils/utils.js`);
 
 const variant = 'standard';

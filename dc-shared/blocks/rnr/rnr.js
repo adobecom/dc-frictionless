@@ -4,7 +4,7 @@
 import localeMap from '../../scripts/maps/localeMap.js';
 import { loadPlaceholders, setLibs } from '../../scripts/utils.js';
 
-const miloLibs = setLibs('/libs');
+const miloLibs = setLibs();
 const { createTag } = await import(`${miloLibs}/utils/utils.js`);
 
 // #region Constants
