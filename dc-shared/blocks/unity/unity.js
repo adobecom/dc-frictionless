@@ -93,14 +93,12 @@ export const localeMap = {
   vn_vi: 'en-us',
 };
 
-function getUnityLibs(prodLibs = '/unitylibs') {
+function getUnityLibs(prodLibs = '/dc-shared/unitylibs') {
   const { hostname, search } = window.location;
-  if (hostname === 'acrobat.adobe.com') return 'https://milo.adobe.com/unitylibs';
-  if (hostname === 'stage.acrobat.adobe.com' && !(new URLSearchParams(search).get('unitylibs'))) return 'https://milo.stage.adobe.com/unitylibs';
-  if (!['.aem.', '.hlx.', '.stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
+  if (!['.aem.', '.hlx.', 'stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
   // eslint-disable-next-line compat/compat
   const branch = new URLSearchParams(search).get('unitylibs') || 'main';
-  if (branch === 'main' && hostname === 'www.stage.adobe.com') return prodLibs;
+  if (branch === 'main' && hostname === 'stage.acrobat.adobe.com') return prodLibs;
   const env = hostname.includes('.hlx.') ? 'hlx' : 'aem';
   return `https://${branch}${branch.includes('--') ? '' : '--unity--adobecom'}.${env}.live/unitylibs`;
 }

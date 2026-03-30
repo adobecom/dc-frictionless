@@ -23,12 +23,10 @@ document.querySelectorAll('a').forEach((p, idx) => {
  */
 const setLibs = (prodLibs, location = window.location) => {
   const { hostname, search } = location;
-  if (hostname === 'acrobat.adobe.com') return 'https://milo.adobe.com/libs';
-  if (hostname === 'stage.acrobat.adobe.com') return 'https://milo.stage.adobe.com/libs';
-  if (!['.aem.', '.hlx.', '.stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
+  if (!['.aem.', '.hlx.', 'stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
   // eslint-disable-next-line compat/compat
   const branch = new URLSearchParams(search).get('milolibs') || 'main';
-  if (branch === 'main' && hostname === 'www.stage.adobe.com') return '/libs';
+  if (branch === 'main' && hostname === 'stage.acrobat.adobe.com') return prodLibs;
   if (branch === 'local') return 'http://localhost:6456/libs';
   return `https://${branch}${branch.includes('--') ? '' : '--milo--adobecom'}.aem.live/libs`;
 };
@@ -161,7 +159,7 @@ function addLocale(locale) {
 const STYLES = '/dc-shared/styles/styles.css';
 
 // Use '/libs' if your live site maps '/libs' to milo's origin.
-const LIBS = '/libs';
+const LIBS = '/dc-shared/libs';
 
 const locales = {
   // Americas

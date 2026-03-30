@@ -25,12 +25,10 @@ export const [setLibs, getLibs] = (() => {
     (prodLibs, location) => {
       libs = (() => {
         const { hostname, search } = location || window.location;
-        if (hostname === 'acrobat.adobe.com') return 'https://milo.adobe.com/libs';
-        if (hostname === 'stage.acrobat.adobe.com') return 'https://milo.stage.adobe.com/libs';
-        if (!['.aem.', '.hlx.', '.stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
+        if (!['.aem.', '.hlx.', 'stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
         // eslint-disable-next-line compat/compat
         const branch = new URLSearchParams(search).get('milolibs') || 'main';
-        if (branch === 'main' && hostname === 'www.stage.adobe.com') return '/libs';
+        if (branch === 'main' && hostname === 'stage.acrobat.adobe.com') return prodLibs;
         if (branch === 'local') return 'http://localhost:6456/libs';
         return `https://${branch}${branch.includes('--') ? '' : '--milo--adobecom'}.aem.live/libs`;
       })();
@@ -74,7 +72,7 @@ export function isOldBrowser() {
  * @param {string | undefined} prefix Optional prefix for loading specific placeholders
  */
 export async function loadPlaceholders(prefix) {
-  const miloLibs = setLibs('/libs');
+  const miloLibs = setLibs('/dc-shared/libs');
   const { getConfig } = await import(`${miloLibs}/utils/utils.js`);
   const config = getConfig();
 
