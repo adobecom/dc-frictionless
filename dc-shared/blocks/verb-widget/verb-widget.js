@@ -2,7 +2,7 @@
 /* eslint-disable compat/compat */
 import { setLibs, getEnv, isOldBrowser } from '../../scripts/utils.js';
 
-const miloLibs = setLibs('/libs');
+const miloLibs = setLibs();
 
 let createTag;
 let getConfig;

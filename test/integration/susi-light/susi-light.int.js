@@ -4,7 +4,7 @@ import { readFile } from '@web/test-runner-commands';
 import { expect } from '@esm-bundle/chai';
 import { setLibs } from '../../../dc-shared/scripts/utils.js';
 
-const miloLibs = setLibs('/libs');
+const miloLibs = setLibs();
 const { setConfig } = await import(`${miloLibs}/utils/utils.js`);
 
 document.head.innerHTML = await readFile({ path: './mocks/head.html' });

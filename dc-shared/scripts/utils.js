@@ -22,9 +22,9 @@
 export const [setLibs, getLibs] = (() => {
   let libs;
   return [
-    (prodLibs, location) => {
+    (prodLibs = '/dc-shared/libs', location = window.location) => {
       libs = (() => {
-        const { hostname, search } = location || window.location;
+        const { hostname, search } = location;
         if (!['.aem.', '.hlx.', 'stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
         // eslint-disable-next-line compat/compat
         const branch = new URLSearchParams(search).get('milolibs') || 'main';
@@ -72,7 +72,7 @@ export function isOldBrowser() {
  * @param {string | undefined} prefix Optional prefix for loading specific placeholders
  */
 export async function loadPlaceholders(prefix) {
-  const miloLibs = setLibs('/dc-shared/libs');
+  const miloLibs = setLibs();
   const { getConfig } = await import(`${miloLibs}/utils/utils.js`);
   const config = getConfig();
 
