@@ -267,6 +267,7 @@ const CONFIG = {
   codeRoot: '/dc-shared',
   contentRoot: '/dc-shared',
   imsClientId: 'acrobatmiloguest',
+  allowedOrigins: ['acrobat.adobe.com', 'stage.acrobat.adobe.com'],
   fedContentPrefix: '/dc-shared',
   commerce: { checkoutClientId: 'doc_cloud' },
   local: {
