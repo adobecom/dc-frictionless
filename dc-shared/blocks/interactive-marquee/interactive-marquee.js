@@ -1,6 +1,6 @@
 import { setLibs } from '../../scripts/utils.js';
 
-const miloLibs = setLibs('/libs');
+const miloLibs = setLibs();
 const { decorateButtons, getBlockSize, decorateBlockBg } = await import(`${miloLibs}/utils/decorate.js`);
 const { createTag } = await import(`${miloLibs}/utils/utils.js`);
 

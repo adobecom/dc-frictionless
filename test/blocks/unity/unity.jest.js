@@ -97,7 +97,7 @@ describe('Unity block', () => {
     expect(mockWorkflowInit).toHaveBeenCalledWith(
       block,
       'acrobat',
-      'https://milo.adobe.com/unitylibs', // Expected full URL
+      '/dc-shared/unitylibs', // Expected full URL
       'v2',
       'us',
       'en',
@@ -116,7 +116,7 @@ describe('Unity block', () => {
     expect(mockWorkflowInit).toHaveBeenCalledWith(
       block,
       'acrobat',
-      'https://milo.stage.adobe.com/unitylibs', // Expected full stage URL
+      '/dc-shared/unitylibs', // Expected full stage URL
       'v2',
       'us',
       'en',

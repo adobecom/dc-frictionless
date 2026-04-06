@@ -1,6 +1,6 @@
 import { setLibs } from '../../scripts/utils.js';
 
-const miloLibs = setLibs('/libs');
+const miloLibs = setLibs();
 const { getMetadata } = await import(`${miloLibs}/blocks/section-metadata/section-metadata.js`);
 const { createTag, getConfig } = await import(`${miloLibs}/utils/utils.js`);
 const { decorateDefaultLinkAnalytics } = await import(`${miloLibs}/martech/attributes.js`);
