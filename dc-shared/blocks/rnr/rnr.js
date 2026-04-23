@@ -11,6 +11,7 @@ const { createTag } = await import(`${miloLibs}/utils/utils.js`);
 
 const isProd = [
   'www.adobe.com',
+  'acrobat.adobe.com',
   'sign.ing',
   'edit.ing',
 ].includes(window.location.hostname);
