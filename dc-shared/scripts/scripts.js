@@ -58,6 +58,10 @@ const getBrowserData = (userAgent) => {
   if (!userAgent) {
     return {};
   }
+  if (userAgent.includes('AdobeEdgeOptimize')) {
+    return { ua: userAgent, isMobile: false };
+  }
+
   const browser = {
     ua: userAgent,
     isMobile: userAgent.includes('Mobile'),
