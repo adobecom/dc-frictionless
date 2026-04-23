@@ -22,6 +22,7 @@ const SHOW_COMMENTS_TRESHOLD = 5;
 const ASSET_TYPE = 'ADOBE_COM';
 const RNR_API_URL = isProd ? 'https://rnr.adobe.io/v1' : 'https://rnr-stage.adobe.io/v1';
 const RNR_API_KEY = 'dc-general';
+const MIN_DISPLAY_RATING = 3;
 
 // Errors, Analytics & Logging
 const lanaOptions = {
@@ -43,7 +44,6 @@ function retrieveSnapshot(verb) {
 }
 
 function createSnapshot(verb, rating, currentAverage, currentVotes) {
-  const MIN_DISPLAY_RATING = 4;
   const includeInAggregate = rating >= MIN_DISPLAY_RATING;
   const newVotes = includeInAggregate ? currentVotes + 1 : currentVotes;
   const newAverage = includeInAggregate
@@ -229,9 +229,7 @@ function setJsonLdProductInfo() {
 // #endregion
 
 async function loadRnrData() {
-  if (!metadata.verb?.trim()) {
-    return;
-  }
+  if (!metadata.verb) return;
   try {
     const token = await getAndValidateImsToken('load review data');
     if (!token) return;
@@ -257,15 +255,13 @@ async function loadRnrData() {
     if (!overallRating || !ratingHistogram) {
       throw new Error(`Missing aggregated rating data in response for asset '${metadata.verb}'.`);
     }
-    const MIN_DISPLAY_RATING = 4;
-    const getRating = (key) => parseInt(key.replace(/\D/g, ''), 10);
-    const filteredEntries = Object.entries(ratingHistogram)
-      .filter(([key]) => getRating(key) >= MIN_DISPLAY_RATING);
-    const filteredVotes = filteredEntries.reduce((total, [, count]) => total + count, 0);
-    const filteredSum = filteredEntries.reduce(
-      (total, [key, count]) => total + getRating(key) * count,
-      0,
-    );
+    let filteredVotes = 0;
+    let filteredSum = 0;
+    for (let rating = MIN_DISPLAY_RATING; rating <= 5; rating += 1) {
+      const count = ratingHistogram[`rating${rating}`] ?? 0;
+      filteredVotes += count;
+      filteredSum += rating * count;
+    }
     rnrData.average = filteredVotes > 0 ? filteredSum / filteredVotes : overallRating;
     rnrData.votes = filteredVotes;
 
@@ -604,7 +600,7 @@ function initControls(element) {
 
 // Preload icons
 function preloadIcons() {
-  const icons = ['/dc-shared/img/icons/star-outline.svg', '/acrobat/img/icons/star-filled.svg'];
+  const icons = ['/dc-shared/img/icons/star-outline.svg', '/dc-shared/img/icons/star-filled.svg'];
   for (const iconPath of icons) {
     const img = new Image();
     img.src = iconPath;

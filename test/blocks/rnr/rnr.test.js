@@ -543,11 +543,11 @@ describe('rnr - Ratings and reviews', () => {
     const containerElement = await waitForElement('.rnr-container');
     expect(containerElement).to.exist;
     const averageElement = containerElement.querySelector('.rnr-summary-average');
-    expect(averageElement.textContent).to.equal('4.5');
+    expect(averageElement.textContent).to.equal('3.8');
     const outOfElement = containerElement.querySelector('.rnr-summary-outOf');
     expect(outOfElement.textContent).to.equal('5');
     const votesElement = containerElement.querySelector('.rnr-summary-votes');
-    expect(votesElement.textContent).to.equal('2');
+    expect(votesElement.textContent).to.equal('4');
   });
 
   it('should render round average', async () => {
