@@ -219,7 +219,7 @@ function setJsonLdProductInfo() {
   script.setAttribute('type', 'application/ld+json');
   const structuredDataText = JSON.stringify(linkedData);
   script.textContent = structuredDataText;
-  //document.head.appendChild(script);
+  // document.head.appendChild(script);
 }
 
 // #endregion
