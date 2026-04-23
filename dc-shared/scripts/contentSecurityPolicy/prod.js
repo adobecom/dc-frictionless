@@ -264,11 +264,7 @@ const scriptSrc = [
   'rum.hlx.page',
   'tr.snapchat.com',
   'api.demandbase.com/api/v3',
-<<<<<<< sync-upstream-stage
-  '\'sha256-C/4SCwdHW/4BImT58K62vMSoPNegE8Fq2ms9JhDvBZE=\'',
-=======
   '\'sha256-/8kuk+off7WlbvjFE1wli8emjDHUO6CTg3+Q1EsnP/g=\'',
->>>>>>> stage
   ';',
 ];
 
