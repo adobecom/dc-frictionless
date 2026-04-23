@@ -4,14 +4,13 @@
 import localeMap from '../../scripts/maps/localeMap.js';
 import { loadPlaceholders, setLibs } from '../../scripts/utils.js';
 
-const miloLibs = setLibs();
+const miloLibs = setLibs('/libs');
 const { createTag } = await import(`${miloLibs}/utils/utils.js`);
 
 // #region Constants
 
 const isProd = [
   'www.adobe.com',
-  'acrobat.adobe.com',
   'sign.ing',
   'edit.ing',
 ].includes(window.location.hostname);
@@ -43,8 +42,12 @@ function retrieveSnapshot(verb) {
 }
 
 function createSnapshot(verb, rating, currentAverage, currentVotes) {
-  const newVotes = currentVotes + 1;
-  const newAverage = (currentAverage * currentVotes + rating) / newVotes;
+  const MIN_DISPLAY_RATING = 4;
+  const includeInAggregate = rating >= MIN_DISPLAY_RATING;
+  const newVotes = includeInAggregate ? currentVotes + 1 : currentVotes;
+  const newAverage = includeInAggregate
+    ? (currentAverage * currentVotes + rating) / newVotes
+    : currentAverage;
 
   const localSnapshotValue = localStorage.getItem('rnr-snapshot');
   let newSnapshot = {};
@@ -253,11 +256,17 @@ async function loadRnrData() {
     if (!overallRating || !ratingHistogram) {
       throw new Error(`Missing aggregated rating data in response for asset '${metadata.verb}'.`);
     }
-    rnrData.average = overallRating;
-    rnrData.votes = Object.keys(ratingHistogram).reduce(
-      (total, key) => total + ratingHistogram[key],
+    const MIN_DISPLAY_RATING = 4;
+    const getRating = (key) => parseInt(key.replace(/\D/g, ''), 10);
+    const filteredEntries = Object.entries(ratingHistogram)
+      .filter(([key]) => getRating(key) >= MIN_DISPLAY_RATING);
+    const filteredVotes = filteredEntries.reduce((total, [, count]) => total + count, 0);
+    const filteredSum = filteredEntries.reduce(
+      (total, [key, count]) => total + getRating(key) * count,
       0,
     );
+    rnrData.average = filteredVotes > 0 ? filteredSum / filteredVotes : overallRating;
+    rnrData.votes = filteredVotes;
 
     setJsonLdProductInfo();
   } catch (error) {
@@ -594,7 +603,7 @@ function initControls(element) {
 
 // Preload icons
 function preloadIcons() {
-  const icons = ['/dc-shared/img/icons/star-outline.svg', '/dc-shared/img/icons/star-filled.svg'];
+  const icons = ['/acrobat/img/icons/star-outline.svg', '/acrobat/img/icons/star-filled.svg'];
   for (const iconPath of icons) {
     const img = new Image();
     img.src = iconPath;

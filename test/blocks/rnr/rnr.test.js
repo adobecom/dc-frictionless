@@ -4,7 +4,7 @@ import { readFile, sendKeys } from '@web/test-runner-commands';
 import { expect } from '@esm-bundle/chai';
 import { waitForElement } from '../../helpers/waitfor.js';
 
-const { default: init } = await import('../../../dc-shared/blocks/rnr/rnr.js');
+const { default: init } = await import('../../../acrobat/blocks/rnr/rnr.js');
 
 describe('rnr - Ratings and reviews', () => {
   beforeEach(async () => {
@@ -543,11 +543,11 @@ describe('rnr - Ratings and reviews', () => {
     const containerElement = await waitForElement('.rnr-container');
     expect(containerElement).to.exist;
     const averageElement = containerElement.querySelector('.rnr-summary-average');
-    expect(averageElement.textContent).to.equal('2.6');
+    expect(averageElement.textContent).to.equal('4.5');
     const outOfElement = containerElement.querySelector('.rnr-summary-outOf');
     expect(outOfElement.textContent).to.equal('5');
     const votesElement = containerElement.querySelector('.rnr-summary-votes');
-    expect(votesElement.textContent).to.equal('10');
+    expect(votesElement.textContent).to.equal('2');
   });
 
   it('should render round average', async () => {
@@ -555,8 +555,8 @@ describe('rnr - Ratings and reviews', () => {
     window.fetch.returns(
       Promise.resolve({
         json: () => Promise.resolve({
-          overallRating: 2.666666666666667,
-          ratingHistogram: { rating1: 0, rating2: 5, rating3: 10, rating4: 0, rating5: 0 },
+          overallRating: 4.666666666666667,
+          ratingHistogram: { rating1: 0, rating2: 0, rating3: 0, rating4: 5, rating5: 10 },
         }),
         ok: true,
       }),
@@ -567,7 +567,7 @@ describe('rnr - Ratings and reviews', () => {
     const containerElement = await waitForElement('.rnr-container');
     expect(containerElement).to.exist;
     const averageElement = containerElement.querySelector('.rnr-summary-average');
-    expect(averageElement.textContent).to.equal('2.7');
+    expect(averageElement.textContent).to.equal('4.7');
   });
 
   it('should render should display integer averages without decimals', async () => {
@@ -575,8 +575,8 @@ describe('rnr - Ratings and reviews', () => {
     window.fetch.returns(
       Promise.resolve({
         json: () => Promise.resolve({
-          overallRating: 2,
-          ratingHistogram: { rating1: 0, rating2: 2, rating3: 0, rating4: 0, rating5: 0 },
+          overallRating: 5,
+          ratingHistogram: { rating1: 0, rating2: 0, rating3: 0, rating4: 0, rating5: 2 },
         }),
         ok: true,
       }),
@@ -587,7 +587,7 @@ describe('rnr - Ratings and reviews', () => {
     const containerElement = await waitForElement('.rnr-container');
     expect(containerElement).to.exist;
     const averageElement = containerElement.querySelector('.rnr-summary-average');
-    expect(averageElement.textContent).to.equal('2');
+    expect(averageElement.textContent).to.equal('5');
   });
 
   // #endregion
