@@ -26,6 +26,7 @@ const setLibs = (prodLibs, location = window.location) => {
   if (!['.aem.', '.hlx.', 'stage.', 'local', '.da.'].some((i) => hostname.includes(i))) return prodLibs;
   // eslint-disable-next-line compat/compat
   const branch = new URLSearchParams(search).get('milolibs') || 'main';
+  if (!/^[a-zA-Z0-9_-]+$/.test(branch)) throw new Error('Invalid branch name.');
   if (branch === 'main' && hostname === 'stage.acrobat.adobe.com') return prodLibs;
   if (branch === 'local') return 'http://localhost:6456/libs';
   return `https://${branch}${branch.includes('--') ? '' : '--milo--adobecom'}.aem.live/libs`;
@@ -57,6 +58,10 @@ const getBrowserData = (userAgent) => {
   if (!userAgent) {
     return {};
   }
+  if (userAgent.includes('AdobeEdgeOptimize')) {
+    return { ua: userAgent, isMobile: false };
+  }
+
   const browser = {
     ua: userAgent,
     isMobile: userAgent.includes('Mobile'),
@@ -285,7 +290,6 @@ const CONFIG = {
   },
   stage: {
     edgeConfigId: 'e065836d-be57-47ef-b8d1-999e1657e8fd',
-    marTechUrl: 'https://milo.stage.adobe.com/marketingtech/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js',
     pdfViewerClientId: '5bfb3a784f2642f88ecf9d2ff4cd573e',
     pdfViewerReportSuite: 'adbadobedxqa',
   },
