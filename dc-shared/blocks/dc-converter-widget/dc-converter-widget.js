@@ -359,6 +359,7 @@ export default async function init(element) {
     }
     const { cause, message, name, type } = err.detail?.wrappedException || {};
     if (err.detail?.wrappedException) {
+      // eslint-disable-next-line max-len
       errorString = JSON.stringify(err.detail?.wrappedException, Object.getOwnPropertyNames(err.detail?.wrappedException));
     }
     const errorStringBasic = err.detail?.wrappedException;
