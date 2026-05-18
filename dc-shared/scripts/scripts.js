@@ -547,9 +547,7 @@ async function loadPage() {
   loadLana({ clientId: 'dxdc', tags: 'DC_Milo' });
 
   if (!window.alloy_all) {
-    const get = (obj, path) => path.split('.').reduce(
-      (cur, seg) => (cur !== undefined && cur !== null ? cur[seg] : undefined), obj,
-    );
+    const get = (obj, path) => path.split('.').reduce((cur, seg) => (cur !== undefined && cur !== null ? cur[seg] : undefined), obj);
     const set = (obj, path, val) => {
       path.split('.').reduce((cur, seg, i, segs) => {
         if (i === segs.length - 1) cur[seg] = val;
