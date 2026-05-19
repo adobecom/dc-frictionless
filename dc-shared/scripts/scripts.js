@@ -546,6 +546,21 @@ async function loadPage() {
 
   loadLana({ clientId: 'dxdc', tags: 'DC_Milo' });
 
+  if (!window.alloy_all) {
+    const get = (obj, path) => path.split('.').reduce((cur, seg) => (cur !== undefined && cur !== null ? cur[seg] : undefined), obj);
+    const set = (obj, path, val) => {
+      path.split('.').reduce((cur, seg, i, segs) => {
+        if (i === segs.length - 1) cur[seg] = val;
+        else cur[seg] = cur[seg] || {};
+        return cur[seg];
+      }, obj);
+      return obj;
+    };
+    window.alloy_all = { get, set };
+  }
+  window.alloy_all.set(window.alloy_all, 'data._adobe_corpnew.app.appName', 'ACROBAT_WEB_FRICTIONLESS');
+  window.alloy_all.set(window.alloy_all, 'data._adobe_corpnew.app.appVersion', '1.0');
+
   await loadArea(document, false);
 
   // Setup Logging
