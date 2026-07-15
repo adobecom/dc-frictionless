@@ -245,6 +245,7 @@ export const LIMITS = {
     maxFileSizeFriendly: '100 MB',
     acceptedFiles: ['.pdf', '.doc', '.docx', '.xml', '.ppt', '.pptx', '.xls', '.xlsx', '.rtf', '.txt', '.text', '.form', '.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff', '.heic'],
     multipleFiles: true,
+    uploadType: 'multifile-only',
   },
 };
 
