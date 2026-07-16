@@ -243,8 +243,9 @@ export const LIMITS = {
   'heic-to-pdf': {
     maxFileSize: 104857600, // 100 MB
     maxFileSizeFriendly: '100 MB',
-    acceptedFiles: ['.pdf', '.doc', '.docx', '.xml', '.ppt', '.pptx', '.xls', '.xlsx', '.rtf', '.txt', '.text', '.form', '.bmp', '.gif', '.indd', '.jpeg', '.jpg', '.png', '.psd', '.tif', '.tiff', '.heic'],
+    acceptedFiles: ['.pdf', '.doc', '.docx', '.xml', '.ppt', '.pptx', '.xls', '.xlsx', '.rtf', '.txt', '.text', '.form', '.bmp', '.gif', '.jpeg', '.jpg', '.png', '.tif', '.tiff', '.heic'],
     multipleFiles: true,
+    uploadType: 'multifile-only',
   },
 };
 
