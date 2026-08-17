@@ -96,7 +96,7 @@
       </div>
     </div>
   </div>
-  <div class="code-root">🧩 <b>Shared code root</b> — both repos serve front-end code from <span class="u" style="font-size:12px">/dc-shared/*</span> &nbsp;·&nbsp; head.html already detects acrobat.adobe.com / stage / DA hosts</div>
+  <div class="code-root">🧩 <b>Code root differs:</b> adobe.com (da-dc) serves code from <span class="u" style="font-size:12px">/acrobat</span> (e.g. /acrobat/scripts/scripts.js) · acrobat.adobe.com (dc-frictionless) uses the <b>new</b> <span class="u" style="font-size:12px">/dc-shared/*</span> root — introduced to move code out from under /acrobat, which acrobat.adobe.com can't use · head.html detects acrobat.adobe.com / stage / DA hosts</div>
 </section>
 
 <!-- ============ BOARD A: DECISION A — REPO ============ -->
@@ -129,9 +129,10 @@
         <div class="arrow">➜</div>
         <div class="card green" style="align-self:center"><div class="t">Single EDS project</div><span class="u">main--da-dc--adobecom.aem.live</span><br><span style="font-size:12px">one repo · one DA instance</span></div>
       </div>
-      <div class="note" style="background:#eef;border:1.5px solid #ccd; margin-top:10px">Verbs live under <b>new, non-overlapping paths</b>; www.adobe.com Akamai property untouched (additive).</div>
-      <div class="note pros"><b>Pros</b>No code duplication · one DA/CI/QA · add a verb = author once · lowest ongoing cost</div>
+      <div class="note pros" style="margin-top:10px"><b>Pros (steady state)</b>Single source of truth for code · one DA/CI/QA · lowest ongoing cost</div>
       <div class="note cons"><b>Cons</b>Shared blast radius (bad /dc-shared hits both) · logical not physical isolation · shared governance</div>
+      <div class="note" style="background:#fdeaec;border:1.5px solid #f6c2c8"><b>⚠ Blocker 1 — code-root migration</b>adobe.com uses the /acrobat code root, NOT /dc-shared. Unifying means re-homing ALL adobe.com DC pages from /acrobat onto /dc-shared → project-wide edits + www.adobe.com Akamai update + full adobe.com regression.</div>
+      <div class="note" style="background:#fdeaec;border:1.5px solid #f6c2c8"><b>⚠ Blocker 2 — /acrobat collision</b>da-dc content is under /acrobat/online/; acrobat.adobe.com can't expose /acrobat → needs an Akamai origin-path rewrite (path-portable page) or a separate authored path.</div>
     </div>
   </div>
 </section>
@@ -321,7 +322,7 @@
       <div class="card" style="background:#fff"><div class="t">Self-fetch routed to a different path</div>Route the EdgeWorker's fetch to <span class="u">/dc-shared/</span> so it does NOT hit the EdgeWorker path.<br><span style="font-size:12.5px;color:#666">Requires the same content to also live under /dc-shared/ → a second authored copy.</span></div>
       <div class="note cons"><b>Result</b>Two authored copies to keep in sync, <b>per verb</b> · multiplied across every verb migrated</div>
       <div class="note" style="background:#eef;border:1.5px solid #ccd">Ref: <span class="u" style="font-size:12px">frictionlessResponseProvider()</span> — da-dc / edgeworkers/Acrobat_DC_web_prod/main.js (~L254) has no flag, so it fetches the duplicated /dc-shared/ path</div>
-      <div class="note" style="background:#fff4d6;border:1.5px solid #f0d68a"><b>Why this one?</b> The Acrobat team declined adding the header flag (they already have too many flags), so acrobat.adobe.com uses the duplicate-path workaround.</div>
+      <div class="note" style="background:#fff4d6;border:1.5px solid #f0d68a"><b>Why this one?</b> The Acrobat team had concerns about adding another header flag (they already have many flags), so acrobat.adobe.com uses the duplicate-path workaround.</div>
     </div>
   </div>
 
