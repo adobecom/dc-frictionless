@@ -103,7 +103,7 @@
 <section class="board" id="bA">
   <div class="badge">DECISION A · REPO</div>
   <h2>② Which repo serves acrobat.adobe.com</h2>
-  <p class="sub">Independent of the URL path choice (Board ③). No recommendation — trade-offs only.</p>
+  <p class="sub">Independent of the URL path choice (Board ③). Trade-offs only. Note: A1's setup already exists and is proven for heic-to-pdf, so it can start fastest.</p>
 
   <div class="row">
     <div class="lane gray">
@@ -284,9 +284,9 @@
 
 <!-- ============ BOARD F: PRERENDER EDGEWORKER LOOP → DUAL AUTHORING ============ -->
 <section class="board" id="bF">
-  <div class="badge">AS-IS · CONSTRAINT</div>
-  <h2>⑦ Why the verb page is authored twice — the prerender EdgeWorker loop</h2>
-  <p class="sub">Root cause is the prerender EdgeWorker, <b>not</b> the URL path. Moving pages under /acrobat/online/ would NOT remove the duplicate — only a header flag does.</p>
+  <div class="badge">AUTHORED TWICE · FIX IN PROGRESS</div>
+  <h2>⑦ Why verb pages are authored twice today — and the fix now in validation</h2>
+  <p class="sub">A prerender EdgeWorker needs a second copy today. A traffic-layer fix (Akamai path-strip) removes it — being tested on staging. Independent of repo (Decision A) and URL path (Decision B).</p>
 
   <!-- EdgeWorker -->
   <div class="card purple" style="padding:16px 18px">
@@ -309,24 +309,51 @@
   </div>
   <div class="arrow down" style="justify-content:flex-start;padding-left:60px">➜</div>
 
-  <!-- Two ways to break the loop -->
+  <!-- Today vs Fix in progress -->
   <div class="row">
-    <div class="lane green" style="flex:1">
-      <div class="lane-h">Fix 1 — Header flag ✅ used on www.adobe.com</div>
-      <div class="card" style="background:#fff"><div class="t">Self-fetch carries a flag</div><span class="u">X-EW-Frictionless-Page: true</span><br><span style="font-size:12.5px;color:#666">EdgeWorker sees the flag → skips running on that fetch. One authored page.</span></div>
-      <div class="note pros"><b>Result</b>Single source page · no duplicate · path-agnostic</div>
-      <div class="note" style="background:#eef;border:1.5px solid #ccd">Ref: <span class="u" style="font-size:12px">da-dc / edgeworkers/Acrobat_DC_web_prod/main.js</span> (the header is set there)</div>
-    </div>
     <div class="lane yellow" style="flex:1">
-      <div class="lane-h">Fix 2 — Separate path ⚠ used on acrobat.adobe.com</div>
-      <div class="card" style="background:#fff"><div class="t">Self-fetch routed to a different path</div>Route the EdgeWorker's fetch to <span class="u">/dc-shared/</span> so it does NOT hit the EdgeWorker path.<br><span style="font-size:12.5px;color:#666">Requires the same content to also live under /dc-shared/ → a second authored copy.</span></div>
-      <div class="note cons"><b>Result</b>Two authored copies to keep in sync, <b>per verb</b> · multiplied across every verb migrated</div>
-      <div class="note" style="background:#eef;border:1.5px solid #ccd">Ref: <span class="u" style="font-size:12px">frictionlessResponseProvider()</span> — da-dc / edgeworkers/Acrobat_DC_web_prod/main.js (~L254) has no flag, so it fetches the duplicated /dc-shared/ path</div>
-      <div class="note" style="background:#fff4d6;border:1.5px solid #f0d68a"><b>Why this one?</b> The Acrobat team had concerns about adding another header flag (they already have many flags), so acrobat.adobe.com uses the duplicate-path workaround.</div>
+      <div class="lane-h">🟡 Today (temporary) — a second copy</div>
+      <div class="card" style="background:#fff"><div class="t">EdgeWorker fetches a different path</div>To dodge the loop it fetches under <span class="u">/dc-shared/</span> — so the content must ALSO be published there.</div>
+      <div class="note cons"><b>Cost</b>Two authored copies per verb, kept in sync · grows with every verb migrated</div>
+      <div class="note" style="background:#eef;border:1.5px solid #ccd">On www.adobe.com the loop is avoided with a request flag <span class="u" style="font-size:12px">X-EW-Frictionless-Page: true</span>. The Acrobat team did not want that flag here — it complicates their traffic cache-key logic.</div>
+    </div>
+    <div class="lane green" style="flex:1">
+      <div class="lane-h">🟢 Fix in progress — Akamai strips the folder</div>
+      <div class="card" style="background:#fff"><div class="t">Keep ONE real page</div>EdgeWorker still asks for a <span class="u">/dc-shared/…</span> address (no loop), but Akamai's <b>"Modify Outgoing Request Path"</b> strips <span class="u">/dc-shared</span> before it hits the origin → the origin returns the single real page.</div>
+      <div class="note pros"><b>Result</b>No duplicate — each verb authored ONCE · scoped to just the EdgeWorker verb paths (not all /dc-shared/)</div>
+      <div class="note" style="background:#e7f8ee;border:1.5px solid #b7e6c9"><b>Status</b>DevOps (Adam Peller) setting it up on Akamai staging for validation.</div>
     </div>
   </div>
 
-  <div class="code-root" style="margin-top:16px">📌 <b>Key point:</b> the duplicate copy is <b>independent of the URL path</b> (root vs /acrobat/online/). It is removed <b>only</b> by adopting the header-flag approach — a decision that sits with the Acrobat team, separate from the repo (Decision A) and path (Decision B) choices.</div>
+  <div class="code-root" style="margin-top:16px">📌 <b>Key point:</b> the duplicate is a <b>temporary</b> constraint with a fix in validation. The fix is <b>independent of the repo (Decision A) and URL path (Decision B)</b> — and once live, every future verb is authored just once.</div>
+</section>
+
+<!-- ============ BOARD G: MIGRATING EXISTING VERBS (DA IMPORT) ============ -->
+<section class="board" id="bG">
+  <div class="badge">MIGRATION · IN PROGRESS</div>
+  <h2>⑧ Moving existing verbs — da-dc → dc-frictionless (DA import tool)</h2>
+  <p class="sub">Copy existing verb pages (and their linked assets) across with Adobe's DA import tool instead of rebuilding by hand.</p>
+
+  <div class="flow">
+    <div class="card blue"><div class="t">Source</div>da-dc DA page<br><span class="u" style="font-size:11px">main--da-dc--adobecom.aem.page/acrobat/online/&lt;verb&gt;</span></div>
+    <div class="arrow">➜</div>
+    <div class="card yellow"><div class="t">DA Import tool</div><span class="u">da.live/apps/import</span><br>Linked content = <b>Import</b></div>
+    <div class="arrow">➜</div>
+    <div class="card green"><div class="t">Destination</div>Org <b>adobecom</b> · Site <b>dc-frictionless</b><br>Prod domain <span class="u" style="font-size:11px">acrobat.adobe.com</span></div>
+  </div>
+
+  <div class="row" style="margin-top:16px">
+    <div class="lane pink" style="flex:1">
+      <div class="lane-h">⚠️ Known issue (raised with DA team)</div>
+      <div class="card" style="background:#fff"><div class="t">Not all linked assets copy</div>Page + many SVGs import fine, but some linked files do not move — e.g. <span class="u" style="font-size:11px">/dc-shared/…/ppt-to-pdf-how-to.svg</span>.</div>
+      <div class="note cons"><b>Impact</b>Imported page may be missing images/fragments until fixed</div>
+    </div>
+    <div class="lane green" style="flex:1">
+      <div class="lane-h">✅ Interim plan</div>
+      <div class="card" style="background:#fff"><div class="t">Verify + re-copy</div>After each import, check the linked assets and manually re-copy any that are missing.</div>
+      <div class="note pros"><b>Status</b>Issue logged with the DA team; follow-up in progress.</div>
+    </div>
+  </div>
 </section>
 
 </body>

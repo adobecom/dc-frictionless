@@ -1,314 +1,257 @@
 # Frictionless Verbs on acrobat.adobe.com — Domain Routing Strategy
 
-> This document lays out **all viable scenarios** for hosting frictionless verbs on `acrobat.adobe.com` as we migrate **more verbs** over time. It makes **no recommendation** — each option is presented with its trade-offs so the team can decide. Items we still need to confirm are collected in **Section 8 Open Questions** rather than assumed.
+> **What this document is.** Adobe's "frictionless verbs" are the quick PDF tools (Convert, Compress, HEIC→PDF, PPT→PDF, and so on). Today they live on **www.adobe.com**. We are moving them to **acrobat.adobe.com**. This document explains **how** to host them there, lays out the **options with their trade-offs**, and describes the two supporting pieces of work already under way. It is written to be understandable without a technical background.
+
+---
+
+## In short (summary)
+
+- **The goal:** move Adobe's PDF "verb" tools from www.adobe.com to acrobat.adobe.com — safely, and in a way that is easy to repeat for each new verb.
+- **Two design decisions** (independent of each other):
+  - **Decision A — which workspace hosts the verbs:** keep a **dedicated `dc-frictionless` workspace** (Option A1) or **merge into the existing `da-dc` workspace** (Option A2). See Section 5.
+  - **Decision B — the URL format:** verbs at the root vs under a shared folder. See Section 6.
+- **Two supporting workstreams already in motion:**
+  1. **Removing the "authored twice" overhead** — a traffic-routing fix is being validated on staging so each verb page only has to be created **once**, not twice (Section 4).
+  2. **Moving existing verbs across** — using Adobe's DA "import" tool, with one known asset-copying issue being resolved with the DA team (Section 9).
+- **On timing:** see the closing note (Section 11) on why the dedicated `dc-frictionless` path can start fastest.
 
 ---
 
 ## 1. Purpose
 
-The frictionless verbs (Convert, Compress, HEIC→PDF, etc.) are today authored and delivered on **`www.adobe.com`**. We have begun moving verbs onto **`acrobat.adobe.com`**. The first verb hosted there for testing is:
+The frictionless verbs are today authored and delivered on **www.adobe.com**. We have begun moving them onto **acrobat.adobe.com**. The first verb hosted there for testing is:
 
 ```
 https://acrobat.adobe.com/heic-to-pdf
 ```
 
-We need a **repeatable strategy** so that migrating *additional* verbs to `acrobat.adobe.com` is low-effort and low-risk, and so it does not impact the existing `www.adobe.com` experience.
+We need a **repeatable, low-risk way** to migrate the remaining verbs so that:
 
-Two decisions drive everything and are **independent** of each other:
+- it does **not** put the live www.adobe.com experience at risk, and
+- each additional verb is **easy** to add.
 
-- **Decision A — Which repo / EDS project** serves acrobat.adobe.com (Section 4).
-- **Decision B — Which URL path layout** the verbs use on acrobat.adobe.com (Section 5).
+Two design questions come up, and they are **independent** of each other:
 
-Akamai routing (Section 6) then follows from those two choices.
+- **Decision A — Which workspace (repository) hosts the verbs?** (Section 5.)
+- **Decision B — What do the page web addresses (URLs) look like?** (Section 6.)
+
+The traffic-routing setup (Akamai, Section 7) then follows from those two choices.
 
 ---
 
-## 2. Background & Terminology
+## 2. Glossary
 
 | Term | Meaning |
 |------|---------|
-| **EDS (Edge Delivery Services)** | Adobe's document-based publishing/delivery platform (`*.aem.live`). Both domains are served via EDS. |
-| **DA (da.live)** | Document Authoring surface where content is edited, previewed, and published into an EDS project. |
-| **Code root** | The path prefix from which **code** (blocks, scripts, libs) is served — here `/dc-shared/…`. |
-| **Content root** | The path prefix under which **authored pages** (the verbs) live. |
-| **EDS origin** | The delivery host for a repo, of the form `main--<repo>--adobecom.aem.live`. |
-| **Akamai** | The CDN in front of both domains. `acrobat.adobe.com` is served by a **separate Akamai property** from `www.adobe.com`. |
+| **Verb** | A single PDF tool/page, e.g. "HEIC to PDF", "PPT to PDF". |
+| **Repository ("repo")** | The workspace where the page code and content live. We have two: `da-dc` (for adobe.com) and `dc-frictionless` (for acrobat.adobe.com). |
+| **EDS (Edge Delivery Services)** | Adobe's system for publishing and serving these pages. Both domains use it. |
+| **DA (da.live)** | The tool authors use to edit, preview, and publish pages. |
+| **Code root** | The web-address folder the page **code** loads from. On adobe.com it is `/acrobat`; on acrobat.adobe.com it is the new `/dc-shared` folder. |
+| **Akamai** | The "traffic cop" (CDN) in front of each domain that decides which server answers each web address. acrobat.adobe.com and www.adobe.com use **separate** Akamai configurations. |
+| **EdgeWorker** | A small piece of code that runs at the traffic layer to pre-build the top visual of each verb page so it appears fast. |
+| **Blast radius** | How much could break if a change goes wrong. "Small blast radius" = safe. |
 
-**Why a separate repo/DA exists today:** `acrobat.adobe.com` required a **different path layout (new "code root")** than the `www.adobe.com` tree could accommodate without collisions. To enable that, a new repo — **`adobecom/dc-frictionless`** — and a **separate DA instance** were created. The shared front-end code is served from `/dc-shared/*` in both repos, and `head.html` already detects `acrobat.adobe.com` / `stage.acrobat.adobe.com` / DA (`.da.`) hosts at runtime.
+**Why a separate workspace exists today:** acrobat.adobe.com needed the page **code** to load from a new folder (`/dc-shared`) that adobe.com's setup could not provide without conflicts. To enable that, the new **`dc-frictionless`** repository and its own DA authoring instance were created.
 
 ---
 
-> **Visual boards** (Miro-style) for every section below are in [`docs/diagrams/`](docs/diagrams/) as PNGs — drag them straight into SharePoint:
-> `01-current-setup.png` · `07-edgeworker-dcshared.png` · `02-decision-A-repo.png` · `03-decision-B-path.png` · `06-hosting-paths-deepdive.png` · `04-akamai-routing.png` · `05-scenario-matrix.png`
-
-## 3. Current Setup (as-is)
+## 3. Current setup (how things work today)
 
 ![Current setup](docs/diagrams/01-current-setup.png)
 
-| Attribute | www.adobe.com (live) | acrobat.adobe.com (new, test) |
-|-----------|----------------------|-------------------------------|
+The two domains run on two separate workspaces, each with its own traffic-routing. They currently share the same front-end code, kept in each workspace.
+
+| Attribute | www.adobe.com (live) | acrobat.adobe.com (new, in testing) |
+|-----------|----------------------|-------------------------------------|
 | Domain | `www.adobe.com` | `acrobat.adobe.com` (+ `stage.acrobat.adobe.com`) |
-| Repo | `adobecom/da-dc` | `adobecom/dc-frictionless` (**this repo**) |
-| EDS origin | `main--da-dc--adobecom.aem.live` | `main--dc-frictionless--adobecom.aem.live` |
-| Code root | `/acrobat` (da-dc's code root) | `/dc-shared/*` — the **new** code root introduced for acrobat.adobe.com (the reason this repo was created) |
-| Verb URL example | `www.adobe.com/acrobat/online/<verb>` (existing convention) | `acrobat.adobe.com/heic-to-pdf` (root-level) |
+| Repository | `adobecom/da-dc` | `adobecom/dc-frictionless` (**this repo**) |
+| Delivery server (EDS origin) | `main--da-dc--adobecom.aem.live` | `main--dc-frictionless--adobecom.aem.live` |
+| Code root | `/acrobat` (da-dc's code root) | `/dc-shared/*` — the **new** code root, and the reason this repo was created |
+| Example verb URL | `www.adobe.com/acrobat/online/<verb>` | `acrobat.adobe.com/heic-to-pdf` |
 | Authoring | DA instance for `da-dc` | Separate DA instance for `dc-frictionless` |
-| Akamai | `www.adobe.com` property | **Separate** `acrobat.adobe.com` property |
+| Akamai (traffic routing) | `www.adobe.com` property | **Separate** `acrobat.adobe.com` property |
 
 ```
-        ┌───── Akamai property: www.adobe.com ─────┐
-        │  /acrobat/*  ─────►  main--da-dc--adobecom.aem.live   (DA: da-dc)
-        └──────────────────────────────────────────┘
+        ┌───── Akamai routing: www.adobe.com ──────┐
+        │  /acrobat/*  ─────►  main--da-dc--adobecom.aem.live   (authoring: da-dc)
+        └───────────────────────────────────────────┘
 
-        ┌───── Akamai property: acrobat.adobe.com ─┐
-        │  /heic-to-pdf ────►  main--dc-frictionless--adobecom.aem.live (DA: dc-frictionless)
-        └──────────────────────────────────────────┘
+        ┌───── Akamai routing: acrobat.adobe.com ──┐
+        │  /heic-to-pdf ────►  main--dc-frictionless--adobecom.aem.live (authoring: dc-frictionless)
+        └───────────────────────────────────────────┘
 ```
-
-### 3.5 Why verb pages are authored twice — the prerender EdgeWorker loop (current constraint)
-
-![Prerender EdgeWorker loop and dual authoring](docs/diagrams/07-edgeworker-dcshared.png)
-
-A detail that shapes the strategy — and one that is **independent of the URL path**. The **LCP (the verb-widget block) is rendered by a prerender EdgeWorker**, whose code lives in **`main.js` in the `da-dc` repo** (`edgeworkers/Acrobat_DC_web_prod/main.js`) and runs for verbs on **both domains** (www.adobe.com and acrobat.adobe.com).
-
-**The problem — an endless fetch loop.** To prerender a page, the EdgeWorker must **fetch the page itself**. That fetch hits the same path the EdgeWorker runs on, which triggers the EdgeWorker again — an infinite loop. The EdgeWorker needs a way to recognise *"this request is me fetching — don't run again."* There are two ways to break the loop:
-
-- **Fix 1 — header flag (used on www.adobe.com).** The self-fetch carries a header, `X-EW-Frictionless-Page: true`. When the EdgeWorker sees the flag it skips running on that request. Result: **one authored page**, and it is path-agnostic. (The header is set in `da-dc / edgeworkers/Acrobat_DC_web_prod/main.js`.)
-- **Fix 2 — separate path (used on acrobat.adobe.com).** The self-fetch is routed to a **different path — `/dc-shared/`** — so it does not hit the EdgeWorker path. This requires the **same content to also exist under `/dc-shared/`**, i.e. a **second authored copy**. The dc-frictionless handler `frictionlessResponseProvider()` (around line 254 of the same `main.js`) has **no flag**, so it fetches from the duplicated `/dc-shared/` path.
-
-**Why Fix 2 on acrobat.adobe.com:** the Acrobat team had concerns about adding another header flag (they already have many flags), so acrobat.adobe.com uses the duplicate-path workaround instead.
-
-**Consequence — each verb page is authored twice:**
-
-1. **The visitor's page** — e.g. `acrobat.adobe.com/heic-to-pdf`, and
-2. **A duplicate under `/dc-shared/`** — the copy the prerender EdgeWorker fetches to avoid the loop.
-
-This dual authoring is a **key friction point** that multiplies with every verb migrated. **Crucially, it is not caused by the page being at the root, and it is not fixed by the repo (Section 4) or path (Section 5) choices.** Moving pages under `/acrobat/online/` would keep the duplicate. It is removed **only** by adopting the header-flag approach — a decision that sits with the Acrobat team.
-
-> **Note on the `/dc-shared/` mapping.** On the acrobat.adobe.com Akamai property, shared assets are also consolidated under the same `/dc-shared/*` prefix (Milo libs at `/dc-shared/libs/`, Unity libs at `/dc-shared/unitylibs/`, federal content at `/dc-shared/federal/`) to avoid registering many separate path rules. This asset consolidation is a separate benefit; the *duplicate page authoring* above is specifically driven by the prerender loop, not by the asset mapping.
 
 ---
 
-## 4. Decision A — Which repo serves acrobat.adobe.com
+## 4. The "authored twice" problem — and the fix now in progress
+
+![Prerender EdgeWorker loop and the fix](docs/diagrams/07-edgeworker-dcshared.png)
+
+Today, every verb page on acrobat.adobe.com has to be created **twice** — once for visitors, and once in a hidden location — because of the way the fast-loading technology works. This is extra work that grows with every verb. **We have found a fix that removes the second copy, and it is being tested now.**
+
+### Why there are two copies today
+
+The top visual of each verb page (the part that must load fast) is pre-built by a small piece of code called an **EdgeWorker** (its code lives in `main.js` in the `da-dc` repo and runs for both domains). To pre-build the page, the EdgeWorker has to **fetch the page itself**. But if it fetches the very same address it runs on, it triggers itself again — an **endless loop**.
+
+To avoid the loop, it fetches a **different** address — one under the `/dc-shared/` folder. Today that means the page's content must **also be published under `/dc-shared/`**, i.e. a **second copy**:
+
+1. **The visitor's page** — e.g. `acrobat.adobe.com/heic-to-pdf`, and
+2. **A hidden duplicate under `/dc-shared/`** — the copy the EdgeWorker fetches to avoid the loop.
+
+(On www.adobe.com this loop is avoided a different way — with a special request "flag" header, `X-EW-Frictionless-Page: true`. The Acrobat team did not want to reuse that flag approach on acrobat.adobe.com because it complicates their already-complex traffic caching rules.)
+
+### The fix in progress — let Akamai remove the hidden folder from the address
+
+Instead of publishing a real second copy, we keep only the **one real page** and let the traffic layer do the trick:
+
+- The EdgeWorker still asks for the page using a `/dc-shared/…` address (so it does not trigger its own loop).
+- **Akamai's "Modify Outgoing Request Path" behavior strips the `/dc-shared` part** off the address **before** the request reaches our server — so the server returns the **one real page**.
+- This is **scoped to only the specific verb paths** where the EdgeWorker is enabled (not the entire `/dc-shared/` folder), so nothing else is affected.
+
+**Result:** the duplicate copy is no longer needed — each verb is authored **once**.
+
+**Status:** DevOps (Adam Peller) is setting this up on **Akamai staging for validation**. This fix works **regardless** of which repository (Decision A) or URL layout (Decision B) we choose.
+
+> **Also note — the `/dc-shared/` folder is doing double duty.** On acrobat.adobe.com, the shared assets (Milo libs at `/dc-shared/libs/`, Unity libs at `/dc-shared/unitylibs/`, federal content at `/dc-shared/federal/`) are all served under this one folder to keep traffic routing simple. That asset consolidation is a *separate benefit*; the duplicate-page problem above is specifically about the EdgeWorker loop.
+
+---
+
+## 5. Decision A — Which repository hosts the verbs
 
 ![Decision A - repo options](docs/diagrams/02-decision-A-repo.png)
 
-### Option A1 — Dedicated repo (`dc-frictionless`) — *continue current model*
+Do we keep acrobat.adobe.com in its **own separate workspace** (A1), or **merge everything into the adobe.com workspace** (A2)? A1 keeps risk isolated; A2 removes some duplicate code but requires large, risky changes to the live adobe.com site.
 
-Keep `adobecom/dc-frictionless` + its own DA instance as the permanent home for all acrobat.adobe.com verbs. `da-dc` stays scoped to `www.adobe.com`.
+### Option A1 — Dedicated repo (`dc-frictionless`)
+
+Keep `adobecom/dc-frictionless` and its own authoring instance as the permanent home for all acrobat.adobe.com verbs. `da-dc` stays scoped to www.adobe.com.
 
 | Pros | Cons |
 |------|------|
-| Deploy **blast radius isolated** from www.adobe.com — a bad change here cannot break adobe.com. | **Code duplication:** `/dc-shared/*` must be kept in sync between `da-dc` and `dc-frictionless`; drift risk on every change. |
-| Independent release cadence, CI/CD, and permissions per domain. | **Two DA instances** — content teams manage two authoring surfaces. |
-| Clean separation of ownership. | **Double the CI/CD, Nala/QA, prerender, edgeworker, cache-clear workflows.** |
-| Free to evolve acrobat.adobe.com path layout without touching adobe.com. | Higher long-term operational cost as more verbs are added. |
+| **Risk stays isolated** — a mistake here **cannot** break www.adobe.com. | **Code duplication:** the shared `/dc-shared/*` code must be kept in sync between the two repos. |
+| **Independent** release schedule, testing, and permissions. | **Two authoring instances** for content teams to manage. |
+| **No dependency** on the acrobat.adobe.com team completing Akamai/code-root changes — we can proceed now. | Some **duplicated automation** (testing, publishing pipelines). |
+| Free to evolve acrobat.adobe.com's URL layout without touching adobe.com. | |
 
 ### Option A2 — Reuse `da-dc` for both domains
 
-Serve acrobat.adobe.com verbs from the **existing `da-dc` repo**, with a single shared code root and verbs authored in the same DA tree. Retire `dc-frictionless` and its separate DA instance.
+Serve acrobat.adobe.com verbs from the existing `da-dc` repo. In theory this removes the duplicate code, but reaching that state requires two large, live-site-touching changes:
 
-EDS resolves **code root** and **content root** independently and a single EDS project can serve **multiple domains**. In principle one repo can back both `www.adobe.com` and `acrobat.adobe.com`. In practice there are **two structural blockers** that make this expensive — see below.
+- **Blocker 1 — code-root migration (touches the live adobe.com site).** adobe.com serves its page code from the **`/acrobat`** folder. The `/dc-shared` folder was created specifically to get acrobat.adobe.com off `/acrobat`. Merging both onto one `/dc-shared` means **re-pointing every adobe.com PDF page** to the new code folder — a project-wide change, a www.adobe.com Akamai update, and a **full re-test of the live adobe.com experience**. Large, slow, risky.
+- **Blocker 2 — the `/acrobat` address is taken.** da-dc's verb content lives under `/acrobat/online/…`, but acrobat.adobe.com **cannot** expose `/acrobat` (the Acrobat web app already owns it). So A2 would additionally need traffic-layer rewrites or a separate content path.
 
 | Pros | Cons |
 |------|------|
-| **Single source of truth for code** — one `/dc-shared/*` instead of mirroring it across two repos (no ongoing drift). | **Large one-time migration** to reach that single source of truth — see "code-root migration" note below. |
-| **One DA instance**, one CI/CD, one QA pipeline. | **Shared blast radius:** a bad `/dc-shared/*` change can affect **both** domains at once. |
-| Lower operational cost as verb count grows. | Isolation is **logical** (path + hostname guards) not **physical** (separate repo). |
-| | Governance/access control is shared; relies on path-level review discipline. |
-| | **Content-path collision:** acrobat.adobe.com cannot expose `/acrobat/*` (already the Acrobat web app), so serving da-dc's `/acrobat/online/…` content there needs an Akamai origin-path rewrite or a separate authored path — see below. |
+| Single copy of the shared code (no drift). | **Large, risky migration** touching live adobe.com (Blocker 1). |
+| One authoring instance, one set of pipelines. | **Shared blast radius** — a bad shared-code change hits **both** domains. |
+| Lower long-term maintenance *once achieved*. | The `/acrobat` address collision (Blocker 2) needs extra routing work. |
 
-> **Blocker 1 — code-root migration (project-wide, touches live adobe.com).** adobe.com (da-dc) serves code from the **`/acrobat` code root**. The `/dc-shared/*` code root is the **new** path introduced for acrobat.adobe.com precisely to move code out from under `/acrobat` (which acrobat.adobe.com cannot use — see Blocker 2). Consolidating both domains onto one `/dc-shared` therefore means **re-homing every adobe.com DC page from the `/acrobat` code root onto `/dc-shared`**: a **project-wide, multi-file change**, an update to the **www.adobe.com Akamai mapping**, and a **full regression across the live adobe.com DC experience**. This is a large one-time blast radius, on top of the ongoing shared-radius risk. If this migration is out of scope, A2's "single source of truth for code" is **not attainable**.
-
-> **Blocker 2 — content-path collision (the `/acrobat` problem).** da-dc's verb content lives under `/acrobat/online/…`. acrobat.adobe.com cannot map `/acrobat/*` (it is very likely already the Acrobat web app), so A2 additionally requires either an **Akamai origin-path rewrite on the acrobat.adobe.com property** (public URL → `/acrobat/online/…` origin path; keeps single authoring but needs the page to be path-portable — canonical/links/sitemap), **or** authoring the acrobat verbs at a **separate non-colliding path** in the same repo (keeps one repo/CI but gives up author-once). Note: solving this by *restructuring da-dc's shared paths* would again drag in the adobe.com blast radius of Blocker 1 — **avoid that approach**.
-
-**Net:** A2's headline benefits (no duplication, one CI, one DA) are real, but reaching them is **not additive** — it requires a code-root migration that touches the live adobe.com tree (Blocker 1) plus a content-routing solution for the `/acrobat` collision (Blocker 2). **If minimizing adobe.com blast radius is the priority, A1 keeps all change surface off the live adobe.com experience.**
+**Bottom line:** A2's savings are real, but they come only **after** large changes to the live adobe.com site (Blockers 1 and 2). A1 keeps all change surface **off** the live adobe.com experience, at the cost of maintaining the shared code in two workspaces.
 
 ---
 
-## 5. Decision B — URL path layout on acrobat.adobe.com
+## 6. Decision B — What the verb URLs look like
 
 ![Decision B - path layouts](docs/diagrams/03-decision-B-path.png)
 
-Independent of the repo choice. This is **purely a CDN-routing and URL-namespace decision** — the difference is **Akamai routing effort**, **namespace-collision risk**, and **URL cleanliness** as more verbs are added.
+This decision only affects the **web address format** and how much traffic-routing setup each new verb needs. It does **not** affect the "authored twice" work (Section 4). It is a smaller, separable decision.
 
-> **Important — the path choice does *not* change the dual authoring.** Whether verbs sit at the root or under `/acrobat/online/`, each page is still authored twice (the page + its `/dc-shared/` copy) because of the prerender EdgeWorker loop (Section 3.5). That duplicate is removed only by the header-flag decision, which is independent of this section. So do not weigh "authoring effort" when choosing between B1, B2, and B3 — only CDN/URL factors differ.
+Two practical layouts (a third combines them):
 
-### Option B1 — Root-level verbs (current test model)
+- **B1 — Root-level:** `acrobat.adobe.com/heic-to-pdf` — shortest, cleanest address; but the acrobat.adobe.com root is shared with the Acrobat app, so **each verb needs its own routing rule** and a collision check.
+- **B2 — Shared folder:** `acrobat.adobe.com/acrobat/online/heic-to-pdf` — one routing rule covers **all** current and future verbs; longer address; the existing `/heic-to-pdf` test URL would need a redirect.
+- **B3 — Hybrid:** serve under the `/acrobat/online/*` folder but show a clean short address via a traffic-layer redirect (needs SEO "canonical" tags).
 
-```
-acrobat.adobe.com/heic-to-pdf
-acrobat.adobe.com/compress-pdf
-acrobat.adobe.com/word-to-pdf
-```
+| Layout | Routing work per new verb | Address collision risk | Address cleanliness |
+|--------|---------------------------|------------------------|---------------------|
+| B1 Root-level | New rule for each verb | Higher (shared root) | Best |
+| B2 Shared folder | **None** (one rule covers all) | Low | Longer |
+| B3 Hybrid | Small redirect per verb | Low | Best (with redirect) |
 
-| Pros | Cons |
-|------|------|
-| Shortest, cleanest, most marketable URLs. | `acrobat.adobe.com` root namespace is **shared with the existing Acrobat web product** and other routes — every verb path must be explicitly carved out and must **not collide** with existing routes. |
-| Matches the URL already used for the HEIC→PDF test. | **Per-verb Akamai effort:** each new verb needs a new match rule (or an actively maintained allow-list) on the acrobat.adobe.com property. |
-| | Higher coordination with whoever owns the acrobat.adobe.com root namespace. |
-| | Migrating *more* verbs = recurring CDN + namespace review each time. |
+> **Note:** the "authored twice" overhead is the **same** for all three layouts, and it is addressed by the Section 4 fix — not by this decision.
 
-### Option B2 — Single shared prefix (e.g. `/acrobat/online/*`)
-
-```
-acrobat.adobe.com/acrobat/online/heic-to-pdf
-acrobat.adobe.com/acrobat/online/compress-pdf
-acrobat.adobe.com/acrobat/online/word-to-pdf
-```
-*(exact prefix TBD — see Section 8)*
-
-| Pros | Cons |
-|------|------|
-| **One Akamai match rule** for the whole prefix — adding a verb needs **no new CDN rule** (the wildcard already covers it). **Lowest CDN hassle for migrating many verbs.** *(Authoring is unchanged — still two copies per Section 3.5 until the header flag.)* | Longer, less clean URLs than root-level. |
-| One carved-out prefix → **minimal namespace-collision risk** with existing acrobat.adobe.com routes. | The existing test URL `acrobat.adobe.com/heic-to-pdf` is root-level, so it would need a **redirect** to the prefixed URL. |
-| Mirrors the `/acrobat/online/*` convention already used on www.adobe.com → consistent authoring mental model. | May not match desired marketing/SEO vanity URL without additional redirect/rewrite. |
-| Scales cleanly: N verbs, still one rule. | |
-
-### Option B3 — Root-level vanity URL + shared delivery prefix (hybrid)
-
-Author/serve verbs under a shared prefix (B2) for delivery simplicity, but expose **clean root-level vanity URLs** (B1) via Akamai rewrite/redirect.
-
-| Pros | Cons |
-|------|------|
-| Clean public URLs **and** one delivery prefix behind the scenes. | Most Akamai config complexity (rewrite/redirect rules + canonical/SEO handling). |
-| New verb = author under prefix + add one small vanity mapping. | Two URLs per verb (vanity + canonical) — must set canonical tags to avoid SEO duplication. |
-
-### Path-layout summary — CDN/URL differences per *additional* verb
-
-*(Authoring effort is identical across all three — see Section 3.5 — so it is not a differentiator here.)*
-
-| Layout | New Akamai work per verb | Namespace-collision risk | URL cleanliness |
-|--------|--------------------------|--------------------------|-----------------|
-| B1 Root-level | Per-verb rule / allow-list update | Higher (shared root) | Best |
-| B2 Shared prefix | **None** (one rule covers all) | Low | Longer |
-| B3 Hybrid | Small vanity mapping per verb | Low (delivery), managed at edge | Best (with redirect) |
-
-### 5.4 Deep-dive — where the verb pages live in origin (the two hosting paths)
-
-The core question is **where in the origin the verb pages are authored**. Both options ride the *same* full stack — **Browser → Akamai (acrobat.adobe.com property) → EDS origin → DA content tree** — only the path differs.
-
-![Two hosting paths deep-dive](docs/diagrams/06-hosting-paths-deepdive.png)
-
-**Path 1 — Directly in origin (root)** — pages authored at the origin root; public URL is the current test model.
-
-| Stage | Value |
-|-------|-------|
-| Public URL | `acrobat.adobe.com/heic-to-pdf` |
-| Akamai match rule | One rule **per verb** (or a maintained allow-list): `/heic-to-pdf`, `/compress-pdf`, … → EDS origin; everything else → existing Acrobat web app |
-| EDS origin | `main--dc-frictionless--adobecom.aem.live` |
-| DA / EDS content path | Authored at root: `/heic-to-pdf` |
-
-**Path 2 — Under `/acrobat/online/` prefix** — pages authored under a single carved-out prefix.
-
-| Stage | Value |
-|-------|-------|
-| Public URL | `acrobat.adobe.com/acrobat/online/heic-to-pdf` |
-| Akamai match rule | **One** rule covers all verbs: `/acrobat/online/*` → EDS origin; everything else → existing Acrobat web app |
-| EDS origin | `main--dc-frictionless--adobecom.aem.live` |
-| DA / EDS content path | Authored under prefix: `/acrobat/online/heic-to-pdf` |
-
-> **Same for both paths:** the code root `/dc-shared/*` always needs its own Akamai rule → EDS origin, plus a stage rule for `stage.acrobat.adobe.com`.
-
-**Side-by-side**
-
-| Dimension | Path 1 — root (directly in origin) | Path 2 — `/acrobat/online/` prefix |
-|-----------|-----------------------------------|------------------------------------|
-| Akamai rules as verbs grow | 1 per verb (or allow-list) | **1 total** (wildcard) |
-| Add a new verb | Author page **+** new/updated Akamai rule | **Author page only** |
-| Namespace collision risk | Higher — shares root with Acrobat web app | Low — one isolated prefix |
-| URL cleanliness | Best — short vanity URL | Longer path |
-| Redirect for existing test URL | None | Needed (`/heic-to-pdf` → prefixed) |
-| Migrating many verbs | Recurring CDN work | **Least hassle** |
-
-> **These map to the layout options above:** Path 1 = **B1**, Path 2 = **B2**. They can also be combined (**B3**): author under `/acrobat/online/*` for delivery simplicity while exposing clean root vanity URLs via an Akamai rewrite/redirect (set canonical tags to avoid SEO duplication).
+*(A deeper technical side-by-side of the two hosting paths is in the board `06-hosting-paths-deepdive.png`.)*
 
 ---
 
-## 6. Akamai Mapping (acrobat.adobe.com — separate property)
+## 7. Akamai routing (acrobat.adobe.com)
 
 ![Akamai routing](docs/diagrams/04-akamai-routing.png)
 
-`acrobat.adobe.com` is served by its **own Akamai property**, configured independently of `www.adobe.com`. Whatever repo (A1/A2) and path (B1/B2/B3) we choose, the property needs:
+The acrobat.adobe.com domain has its **own** traffic-routing configuration. To host the verbs, it needs a handful of rules — send the verb addresses and the `/dc-shared` code folder to our server, handle staging, and (once ready) apply the Section 4 path-strip fix.
 
-1. **Content routing** — a match rule sending the verb path(s) to the chosen EDS origin.
-2. **Code-root routing** — `/dc-shared/*` must also route to the same EDS origin (code is served from that prefix on this domain too).
-3. **Stage routing** — `stage.acrobat.adobe.com` → the corresponding stage/preview origin.
-4. **Caching & purge** — TTL aligned with EDS cache headers; purge wired to the repo's cache-clear workflow.
+With the recommended **A1** setup, the routing points at `main--dc-frictionless--adobecom.aem.live`.
 
-### 6.1 Origin per repo choice
+**Checklist for the acrobat.adobe.com Akamai property:**
 
-| Repo choice | EDS origin the acrobat.adobe.com property points to |
-|-------------|-----------------------------------------------------|
-| A1 — dedicated | `main--dc-frictionless--adobecom.aem.live` |
-| A2 — reuse da-dc | `main--da-dc--adobecom.aem.live` |
-
-*(stage origin host naming — see Section 8)*
-
-### 6.2 Match rules per path choice
-
-| Path choice | Match rule(s) on acrobat.adobe.com property |
-|-------------|---------------------------------------------|
-| B1 — root-level | One rule **per verb** (or a maintained path allow-list), e.g. `/heic-to-pdf`, `/compress-pdf`, … → EDS origin |
-| B2 — shared prefix | **One rule**: `/acrobat/online/*` → EDS origin (covers all current + future verbs) |
-| B3 — hybrid | `/acrobat/online/*` → EDS origin **plus** per-verb vanity redirect/rewrite `/heic-to-pdf` → prefixed path |
-| All | `/dc-shared/*` → EDS origin (code root) |
-
-### 6.3 Akamai checklist
-
-- [ ] Confirm ownership + change process for the `acrobat.adobe.com` Akamai property.
-- [ ] Add content match rule(s) per chosen path layout (Section 6.2).
-- [ ] Add `/dc-shared/*` code-root rule → EDS origin.
-- [ ] Ensure `Host` header / SNI forwarding matches what the target EDS origin expects.
-- [ ] Configure caching/TTL and wire cache purge to the repo's cache-clear workflow.
-- [ ] Validate `stage.acrobat.adobe.com` routing to the stage origin.
-- [ ] Confirm redirect behavior (trailing slash, locale prefix) matches EDS expectations; add vanity redirects if B3.
-- [ ] Prepare rollback (remove the added behavior) — www.adobe.com property is never in the change path.
+- [ ] Route the verb address(es) → `dc-frictionless` server (per the chosen B1/B2 layout).
+- [ ] Route the `/dc-shared/*` code folder → `dc-frictionless` server.
+- [ ] Apply the **"Modify Outgoing Request Path"** rule to strip `/dc-shared` for the EdgeWorker-enabled verb paths (Section 4 fix) — validate on staging.
+- [ ] Route `stage.acrobat.adobe.com` → the staging server.
+- [ ] Configure caching and cache-clear.
+- [ ] Confirm redirects (trailing slash, locale) behave correctly.
 
 ---
 
-## 7. Scenario Matrix (all combinations)
+## 8. Options at a glance (repo × URL layout)
 
 ![Scenario matrix](docs/diagrams/05-scenario-matrix.png)
 
-Repo (A) × Path (B). Use this to pick a concrete end-state.
+The grid below shows every combination. The only per-verb effort that varies is traffic-routing work; the "authored twice" work is being removed for everyone by the Section 4 fix.
 
-> The **CDN work** column below is the *only* per-verb effort that varies. **Authoring effort is constant across all six** — every verb is authored twice (page + `/dc-shared/` copy) until the header flag is adopted (Section 3.5), regardless of repo or path.
-
-| Scenario | Repo | Path | CDN work per new verb | Blast-radius isolation | Code duplication |
-|----------|------|------|-----------------------|------------------------|------------------|
-| 1 | A1 dedicated | B1 root | New Akamai rule per verb | High (separate repo) | Yes (sync /dc-shared) |
-| 2 | A1 dedicated | B2 prefix | None (one wildcard rule) | High | Yes |
-| 3 | A1 dedicated | B3 hybrid | Vanity map per verb | High | Yes |
-| 4 | A2 reuse da-dc | B1 root | New Akamai rule per verb | Shared with adobe.com | No |
-| 5 | A2 reuse da-dc | B2 prefix | None (one wildcard rule) | Shared | No |
-| 6 | A2 reuse da-dc | B3 hybrid | Vanity map per verb | Shared | No |
-
-*Lowest CDN effort to add verbs: **B2 / B3** (one wildcard rule). Lowest code-maintenance: **A2** (single repo). Highest isolation: **A1**. Authoring overhead is unaffected by this matrix — it depends solely on the header-flag decision (Section 3.5).*
-
-> **Caveat on the "Code duplication → No" column for A2:** that is the *end state*. Reaching it requires the one-time code-root migration of adobe.com onto `/dc-shared` (Blocker 1) plus the `/acrobat` content-collision fix (Blocker 2) — both described under Option A2. The matrix scores the steady state, not the migration cost to get there.
+| Repo | URL layout | Routing work per new verb | Risk to live adobe.com |
+|------|-----------|---------------------------|------------------------|
+| A1 dedicated | B1 root | New rule per verb | **None** (isolated) |
+| A1 dedicated | B2 folder | None (one rule) | **None** (isolated) |
+| A2 reuse da-dc | B1 root | New rule per verb | High (touches adobe.com) |
+| A2 reuse da-dc | B2 folder | None (one rule) | High (touches adobe.com) |
 
 ---
 
-## 8. Open Questions (to confirm — not assumed)
+## 9. Moving existing verbs from da-dc to dc-frictionless
 
-- **Path prefix:** if we adopt B2/B3, what is the exact prefix on acrobat.adobe.com (`/acrobat/online/`, or another)?
-- **Root namespace ownership:** who owns the `acrobat.adobe.com` root namespace, and what is the process to reserve verb paths (needed for B1)?
-- **Stage origin naming:** what is the stage/preview EDS host for `stage.acrobat.adobe.com` under each repo choice?
-- **Existing test URL:** does `acrobat.adobe.com/heic-to-pdf` need to remain the canonical URL, or can it be redirected (affects B2)?
-- **Auth / entitlement:** any differences between the two domains that affect routing or session handling?
-- **SEO / canonical:** which domain is authoritative for these verbs; canonical URL requirements (affects B1 vs B3)?
-- **Retirement plan:** if Option A2 is chosen, what is the cutover + decommission plan for `dc-frictionless` and its DA instance?
-- **A2 code-root migration (Blocker 1):** is re-homing all adobe.com DC pages onto the `/dc-shared` code root in scope? It is a project-wide, multi-file change with a www.adobe.com Akamai update and full adobe.com regression. Without it, A2's single-source-of-truth code benefit is not achievable.
-- **A2 content collision (Blocker 2):** is an Akamai origin-path rewrite on the acrobat.adobe.com property acceptable, and is the verb page path-portable (canonical/links/sitemap)? If not, acrobat verbs must be authored at a separate non-colliding path (giving up author-once).
-- **Dual authoring / header flag (Section 3.5):** will the Acrobat team accept the `X-EW-Frictionless-Page` header flag on acrobat.adobe.com so the prerender EdgeWorker (`frictionlessResponseProvider()` in `da-dc` `main.js`) can self-fetch without the duplicated `/dc-shared/` copy? This is the **only** way to collapse authoring to one page, and it is independent of the repo and path choices.
+![Migrating verbs with the DA import tool](docs/diagrams/08-migration-da-import.png)
+
+We already have many verb pages on adobe.com. Rather than rebuilding each one by hand on acrobat.adobe.com, we use Adobe's **DA "import" tool** to copy the pages — and their linked images/fragments — from the `da-dc` authoring instance into the `dc-frictionless` authoring instance. This mostly works; one asset-copying gap is being fixed with the DA team.
+
+**Tool:** DA Import — <https://da.live/apps/import>
+
+**How it is used:**
+
+| Setting | Value |
+|---------|-------|
+| Source page | e.g. `main--da-dc--adobecom.aem.page/acrobat/online/ppt-to-pdf` |
+| Linked content | **Import** (also pulls in fragments, SVGs, PDFs) |
+| Production domain | `https://acrobat.adobe.com` |
+| Into — Organization | `adobecom` |
+| Into — Site | `dc-frictionless` |
+
+**Known issue (being followed up with the DA team):** even with "import linked content" selected, **not all linked assets are copied.** In a test import of `…/acrobat/online/ppt-to-pdf`, the page and many SVGs imported successfully, but at least one linked asset — `…/dc-shared/…/ppt-to-pdf-how-to.svg` — **did not move**. This has been raised with the DA team and is being followed up.
+
+**Interim plan:** until the tool is fixed, after each import **verify the linked assets** and manually re-copy any that are missing.
 
 ---
 
-## 9. Next Steps
+## 10. Open questions (to confirm)
 
-1. Answer Section 8 open questions with DC Eng + DevOps (Akamai) + Content/DA owners.
-2. Pick a scenario from Section 7 (Decision A × Decision B).
-3. Stand up the Akamai rules (Section 6) on stage; validate on `stage.acrobat.adobe.com`.
-4. Migrate/author the next verb as a pilot; verify code root, libs, and caching. Separately, pursue the **header-flag decision with the Acrobat team (Section 3.5)** — it is the only way to remove the duplicate `/dc-shared/` authoring copy, and it is independent of the repo/path choice.
-5. Roll out remaining verbs following the chosen model; if A2, execute the dc-frictionless retirement plan.
+- **URL layout (Decision B):** confirm B1 (root) vs B2 (`/acrobat/online/` folder) for the public addresses, and whether the existing `/heic-to-pdf` test URL must stay as-is or can redirect.
+- **acrobat.adobe.com root ownership:** who approves reserving verb addresses on the acrobat.adobe.com root (needed for B1)?
+- **Staging server naming:** confirm the staging server host for `stage.acrobat.adobe.com`.
+- **Section 4 fix validation:** confirm the Akamai "Modify Outgoing Request Path" strip works correctly on staging for the EdgeWorker-enabled verb paths (owner: DevOps / Adam Peller).
+- **DA import asset gap (Section 9):** track the DA-team fix for linked assets that do not copy.
+- **SEO / canonical:** which domain is the authoritative one for these verbs.
+
+---
+
+## 11. Next steps
+
+1. **Decide Decision A (workspace) and Decision B (URL layout)** with the DC, DevOps, and Content/DA owners.
+2. **Validate the Section 4 fix on staging** (Akamai path-strip) so future verbs are authored only once.
+3. **Set up the acrobat.adobe.com Akamai routing** (Section 7) on staging for the chosen layout.
+4. **Pilot-migrate the next verb** using the DA import tool (Section 9); verify all linked assets copied.
+5. **Roll out the remaining verbs** following the chosen model.
+
+### A note on timing
+
+If speed is a priority, the **dedicated `dc-frictionless` workspace (Option A1)** can start the fastest: the full setup — the repository, the `/dc-shared` code root, the separate DA authoring instance, and the acrobat.adobe.com Akamai routing — **already exists and is proven** for the `heic-to-pdf` test verb. Additional verbs can be migrated onto that same, working setup with **no new infrastructure**. The `da-dc` merge (Option A2), by contrast, would first require the large, live-adobe.com-touching changes described in Section 5 before any verb could ship.
