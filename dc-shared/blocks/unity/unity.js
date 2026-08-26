@@ -1,5 +1,12 @@
 const LIMITS = {};
 
+// Errors, Analytics & Logging
+const lanaOptions = {
+  sampleRate: 1,
+  tags: 'DC_Milo,Project Unity (DC)',
+  severity: 'error',
+};
+
 export const localeMap = {
   '': 'en-us',
   br: 'pt-br',
@@ -135,6 +142,24 @@ export default async function init(el) {
   const langFromPath = window.location.pathname.split('/')[1];
   const languageCode = localeMap[langFromPath] ? localeMap[langFromPath].split('-')[0] : 'en';
   const languageRegion = localeMap[langFromPath] ? localeMap[langFromPath].split('-')[1] : 'us';
-  const { default: wfinit } = await import(`${unitylibs}/core/workflow/workflow.js`);
-  await wfinit(el, 'acrobat', unitylibs, 'v2', languageRegion, languageCode);
+  let wfinit;
+  try {
+    ({ default: wfinit } = await import(`${unitylibs}/core/workflow/workflow.js`));
+  } catch (e) {
+    window.lana?.log(
+      `Unity: failed to load converter widget workflow for verb '${verb}' from ${unitylibs}: ${e?.message}`,
+      lanaOptions,
+    );
+    throw e;
+  }
+
+  try {
+    await wfinit(el, 'acrobat', unitylibs, 'v2', languageRegion, languageCode);
+  } catch (e) {
+    window.lana?.log(
+      `Unity: converter widget failed to render for verb '${verb}': ${e?.message}`,
+      lanaOptions,
+    );
+    throw e;
+  }
 }

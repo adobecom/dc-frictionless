@@ -29,10 +29,12 @@ describe('Unity block', () => {
       path.resolve(__dirname, './mocks/body-sign-pdf.html'),
       'utf8',
     );
+    window.lana = { log: jest.fn() };
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    delete window.lana;
   });
 
   it('initialize', async () => {
@@ -120,6 +122,26 @@ describe('Unity block', () => {
       'v2',
       'us',
       'en',
+    );
+  });
+
+  it('logs a LANA error when the converter widget fails to render', async () => {
+    delete window.location;
+    window.location = new URL('https://localhost/acrobat/online/sign-pdf.html');
+
+    window.browser = { ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' };
+
+    mockWorkflowInit.mockRejectedValueOnce(new Error('render boom'));
+
+    const block = document.querySelector('.verb-widget');
+    await expect(init(block)).rejects.toThrow('render boom');
+
+    expect(window.lana.log).toHaveBeenCalledTimes(1);
+    const [message, options] = window.lana.log.mock.calls[0];
+    expect(message).toContain('converter widget failed to render');
+    expect(message).toContain('render boom');
+    expect(options).toEqual(
+      expect.objectContaining({ severity: 'error', tags: 'DC_Milo,Project Unity (DC)' }),
     );
   });
 });
