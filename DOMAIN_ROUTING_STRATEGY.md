@@ -1,6 +1,6 @@
 # Frictionless Verbs on acrobat.adobe.com — Domain Routing Strategy
 
-> **What this document is.** Adobe's "frictionless verbs" are the quick PDF tools (Convert, Compress, HEIC→PDF, PPT→PDF, and so on). Today they live on **www.adobe.com**. We are moving them to **acrobat.adobe.com**. This document explains **how** to host them there, lays out the **options with their trade-offs**, and describes the two supporting pieces of work already under way. It is written to be understandable without a technical background.
+> **What this document is.** Adobe's "frictionless verbs" are the quick PDF tools (Convert, Compress, HEIC→PDF, PPT→PDF, and so on). Today they live on **www.adobe.com**. We are moving them to **acrobat.adobe.com**. This document explains **how** to host them there, lays out the **options with their trade-offs**, and describes the two supporting pieces of work already under way. It is written to be understandable without a technical background — each major section opens with a plain-English summary.
 
 ---
 
@@ -32,27 +32,27 @@ We need a **repeatable, low-risk way** to migrate the remaining verbs so that:
 
 Two design questions come up, and they are **independent** of each other:
 
-- **Decision A — Which workspace (repository) hosts the verbs?** (Section 5.)
+- **Decision A — Which workspace (repository) hosts the verbs?** (Section 5 )
 - **Decision B — What do the page web addresses (URLs) look like?** (Section 6.)
 
 The traffic-routing setup (Akamai, Section 7) then follows from those two choices.
 
 ---
 
-## 2. Glossary
+## 2. A plain-language glossary
 
-| Term | Meaning |
-|------|---------|
+| Term | Plain-English meaning |
+|------|-----------------------|
 | **Verb** | A single PDF tool/page, e.g. "HEIC to PDF", "PPT to PDF". |
 | **Repository ("repo")** | The workspace where the page code and content live. We have two: `da-dc` (for adobe.com) and `dc-frictionless` (for acrobat.adobe.com). |
 | **EDS (Edge Delivery Services)** | Adobe's system for publishing and serving these pages. Both domains use it. |
 | **DA (da.live)** | The tool authors use to edit, preview, and publish pages. |
-| **Code root** | The web-address folder the page **code** loads from. On adobe.com it is `/acrobat`; on acrobat.adobe.com it is the new `/dc-shared` folder. |
+| **Code root** | The web-address folder the page **code** loads from. On adobe.com it is `/acrobat` for  DC; on acrobat.adobe.com it is the new `/dc-shared` folder. This was done as we could not map /acrobat on acrobat.adobe.com akamai |
 | **Akamai** | The "traffic cop" (CDN) in front of each domain that decides which server answers each web address. acrobat.adobe.com and www.adobe.com use **separate** Akamai configurations. |
 | **EdgeWorker** | A small piece of code that runs at the traffic layer to pre-build the top visual of each verb page so it appears fast. |
 | **Blast radius** | How much could break if a change goes wrong. "Small blast radius" = safe. |
 
-**Why a separate workspace exists today:** acrobat.adobe.com needed the page **code** to load from a new folder (`/dc-shared`) that adobe.com's setup could not provide without conflicts. To enable that, the new **`dc-frictionless`** repository and its own DA authoring instance were created.
+**Why a separate workspace exists today:** acrobat.adobe.com needed the page **code** to load from a new folder (`/dc-shared`) that adobe.com's setup could not provide without conflicts. To enable that, the new **`dc-frictionless`** repository and its own DA authoring instance were created.There are some other config also added in dc-frictionless repo specific for acrobat.adobe.com for example to there is a config to make sure federal content loads from /dc-shared/* for akamai mapping purpose.
 
 ---
 
@@ -60,7 +60,7 @@ The traffic-routing setup (Akamai, Section 7) then follows from those two choice
 
 ![Current setup](docs/diagrams/01-current-setup.png)
 
-The two domains run on two separate workspaces, each with its own traffic-routing. They currently share the same front-end code, kept in each workspace.
+**In plain English:** the two domains run on two separate workspaces, each with its own traffic-routing. They currently share the same front-end code, kept in each workspace.
 
 | Attribute | www.adobe.com (live) | acrobat.adobe.com (new, in testing) |
 |-----------|----------------------|-------------------------------------|
@@ -88,7 +88,7 @@ The two domains run on two separate workspaces, each with its own traffic-routin
 
 ![Prerender EdgeWorker loop and the fix](docs/diagrams/07-edgeworker-dcshared.png)
 
-Today, every verb page on acrobat.adobe.com has to be created **twice** — once for visitors, and once in a hidden location — because of the way the fast-loading technology works. This is extra work that grows with every verb. **We have found a fix that removes the second copy, and it is being tested now.**
+**In plain English:** today, every verb page on acrobat.adobe.com has to be created **twice** — once for visitors, and once under /dc-shared/* folder — because of the way edgeworker has been enabled. This is extra work that grows with every verb. **We have found a fix that removes the second copy, we are working with acrobat team as that is an akamai config update on their side and will be testing it soon.**
 
 ### Why there are two copies today
 
@@ -121,7 +121,7 @@ Instead of publishing a real second copy, we keep only the **one real page** and
 
 ![Decision A - repo options](docs/diagrams/02-decision-A-repo.png)
 
-Do we keep acrobat.adobe.com in its **own separate workspace** (A1), or **merge everything into the adobe.com workspace** (A2)? A1 keeps risk isolated; A2 removes some duplicate code but requires large, risky changes to the live adobe.com site.
+**In plain English:** do we keep acrobat.adobe.com in its **own separate workspace** (A1), or **merge everything into the adobe.com workspace** (A2)? A1 keeps risk isolated; A2 removes some duplicate code but requires large, risky changes to the live adobe.com site.
 
 ### Option A1 — Dedicated repo (`dc-frictionless`)
 
@@ -139,7 +139,6 @@ Keep `adobecom/dc-frictionless` and its own authoring instance as the permanent 
 Serve acrobat.adobe.com verbs from the existing `da-dc` repo. In theory this removes the duplicate code, but reaching that state requires two large, live-site-touching changes:
 
 - **Blocker 1 — code-root migration (touches the live adobe.com site).** adobe.com serves its page code from the **`/acrobat`** folder. The `/dc-shared` folder was created specifically to get acrobat.adobe.com off `/acrobat`. Merging both onto one `/dc-shared` means **re-pointing every adobe.com PDF page** to the new code folder — a project-wide change, a www.adobe.com Akamai update, and a **full re-test of the live adobe.com experience**. Large, slow, risky.
-- **Blocker 2 — the `/acrobat` address is taken.** da-dc's verb content lives under `/acrobat/online/…`, but acrobat.adobe.com **cannot** expose `/acrobat` (the Acrobat web app already owns it). So A2 would additionally need traffic-layer rewrites or a separate content path.
 
 | Pros | Cons |
 |------|------|
@@ -155,13 +154,13 @@ Serve acrobat.adobe.com verbs from the existing `da-dc` repo. In theory this rem
 
 ![Decision B - path layouts](docs/diagrams/03-decision-B-path.png)
 
-This decision only affects the **web address format** and how much traffic-routing setup each new verb needs. It does **not** affect the "authored twice" work (Section 4). It is a smaller, separable decision.
+**In plain English:** this only affects the **web address format** and how much traffic-routing setup each new verb needs. It does **not** affect the "authored twice" work (Section 4). It is a smaller, separable decision.
 
 Two practical layouts (a third combines them):
 
 - **B1 — Root-level:** `acrobat.adobe.com/heic-to-pdf` — shortest, cleanest address; but the acrobat.adobe.com root is shared with the Acrobat app, so **each verb needs its own routing rule** and a collision check.
-- **B2 — Shared folder:** `acrobat.adobe.com/acrobat/online/heic-to-pdf` — one routing rule covers **all** current and future verbs; longer address; the existing `/heic-to-pdf` test URL would need a redirect.
-- **B3 — Hybrid:** serve under the `/acrobat/online/*` folder but show a clean short address via a traffic-layer redirect (needs SEO "canonical" tags).
+- **B2 — Shared folder:** `acrobat.adobe.com/<shared-folder>/heic-to-pdf` — one routing rule covers **all** current and future verbs; longer address; the existing `/heic-to-pdf` test URL would need a redirect.
+- **B3 — Hybrid:** serve under the `/shared-folder/*` folder but show a clean short address via a traffic-layer redirect (needs SEO "canonical" tags).
 
 | Layout | Routing work per new verb | Address collision risk | Address cleanliness |
 |--------|---------------------------|------------------------|---------------------|
@@ -179,7 +178,7 @@ Two practical layouts (a third combines them):
 
 ![Akamai routing](docs/diagrams/04-akamai-routing.png)
 
-The acrobat.adobe.com domain has its **own** traffic-routing configuration. To host the verbs, it needs a handful of rules — send the verb addresses and the `/dc-shared` code folder to our server, handle staging, and (once ready) apply the Section 4 path-strip fix.
+**In plain English:** acrobat.adobe.com has its **own** traffic-routing configuration. To host the verbs, it needs a handful of rules — send the verb addresses and the `/dc-shared` code folder to our server, handle staging, and (once ready) apply the Section 4 path-strip fix.
 
 With the recommended **A1** setup, the routing points at `main--dc-frictionless--adobecom.aem.live`.
 
@@ -198,7 +197,7 @@ With the recommended **A1** setup, the routing points at `main--dc-frictionless-
 
 ![Scenario matrix](docs/diagrams/05-scenario-matrix.png)
 
-The grid below shows every combination. The only per-verb effort that varies is traffic-routing work; the "authored twice" work is being removed for everyone by the Section 4 fix.
+**In plain English:** the grid below shows every combination. The only per-verb effort that varies is traffic-routing work; the "authored twice" work is being removed for everyone by the Section 4 fix.
 
 | Repo | URL layout | Routing work per new verb | Risk to live adobe.com |
 |------|-----------|---------------------------|------------------------|
@@ -213,7 +212,7 @@ The grid below shows every combination. The only per-verb effort that varies is 
 
 ![Migrating verbs with the DA import tool](docs/diagrams/08-migration-da-import.png)
 
-We already have many verb pages on adobe.com. Rather than rebuilding each one by hand on acrobat.adobe.com, we use Adobe's **DA "import" tool** to copy the pages — and their linked images/fragments — from the `da-dc` authoring instance into the `dc-frictionless` authoring instance. This mostly works; one asset-copying gap is being fixed with the DA team.
+**In plain English:** we already have many verb pages on adobe.com. Rather than rebuilding each one by hand on acrobat.adobe.com, we use Adobe's **DA "import" tool** to copy the pages — and their linked images/fragments — from the `da-dc` authoring instance into the `dc-frictionless` authoring instance. This mostly works; one asset-copying gap is being fixed with the DA team.
 
 **Tool:** DA Import — <https://da.live/apps/import>
 
@@ -235,12 +234,9 @@ We already have many verb pages on adobe.com. Rather than rebuilding each one by
 
 ## 10. Open questions (to confirm)
 
-- **URL layout (Decision B):** confirm B1 (root) vs B2 (`/acrobat/online/` folder) for the public addresses, and whether the existing `/heic-to-pdf` test URL must stay as-is or can redirect.
-- **acrobat.adobe.com root ownership:** who approves reserving verb addresses on the acrobat.adobe.com root (needed for B1)?
-- **Staging server naming:** confirm the staging server host for `stage.acrobat.adobe.com`.
+- **URL layout (Decision B):** confirm B1 (root) vs B2 (`/<shared-folder>>/` folder) for the public addresses.
 - **Section 4 fix validation:** confirm the Akamai "Modify Outgoing Request Path" strip works correctly on staging for the EdgeWorker-enabled verb paths (owner: DevOps / Adam Peller).
 - **DA import asset gap (Section 9):** track the DA-team fix for linked assets that do not copy.
-- **SEO / canonical:** which domain is the authoritative one for these verbs.
 
 ---
 
