@@ -60,7 +60,7 @@ The traffic-routing setup (Akamai, Section 7) then follows from those two choice
 
 ![Current setup](docs/diagrams/01-current-setup.png)
 
-**In plain English:** the two domains run on two separate workspaces, each with its own traffic-routing. They currently share the same front-end code, kept in each workspace.
+The two domains run on two separate workspaces, each with its own traffic-routing. They currently share the same front-end code, kept in each workspace.
 
 | Attribute | www.adobe.com (live) | acrobat.adobe.com (new, in testing) |
 |-----------|----------------------|-------------------------------------|
@@ -88,7 +88,7 @@ The traffic-routing setup (Akamai, Section 7) then follows from those two choice
 
 ![Prerender EdgeWorker loop and the fix](docs/diagrams/07-edgeworker-dcshared.png)
 
-**In plain English:** today, every verb page on acrobat.adobe.com has to be created **twice** — once for visitors, and once under /dc-shared/* folder — because of the way edgeworker has been enabled. This is extra work that grows with every verb. **We have found a fix that removes the second copy, we are working with acrobat team as that is an akamai config update on their side and will be testing it soon.**
+Today, every verb page on acrobat.adobe.com has to be created **twice** — once for visitors, and once under /dc-shared/* folder — because of the way edgeworker has been enabled. This is extra work that grows with every verb. **We have found a fix that removes the second copy, we are working with acrobat team as that is an akamai config update on their side and will be testing it soon.**
 
 ### Why there are two copies today
 
@@ -121,7 +121,7 @@ Instead of publishing a real second copy, we keep only the **one real page** and
 
 ![Decision A - repo options](docs/diagrams/02-decision-A-repo.png)
 
-**In plain English:** do we keep acrobat.adobe.com in its **own separate workspace** (A1), or **merge everything into the adobe.com workspace** (A2)? A1 keeps risk isolated; A2 removes some duplicate code but requires large, risky changes to the live adobe.com site.
+Do we keep acrobat.adobe.com in its **own separate workspace** (A1), or **merge everything into the adobe.com workspace** (A2)? A1 keeps risk isolated; A2 removes some duplicate code but requires large, risky changes to the live adobe.com site.
 
 ### Option A1 — Dedicated repo (`dc-frictionless`)
 
@@ -154,7 +154,7 @@ Serve acrobat.adobe.com verbs from the existing `da-dc` repo. In theory this rem
 
 ![Decision B - path layouts](docs/diagrams/03-decision-B-path.png)
 
-**In plain English:** this only affects the **web address format** and how much traffic-routing setup each new verb needs. It does **not** affect the "authored twice" work (Section 4). It is a smaller, separable decision.
+This only affects the **web address format** and how much traffic-routing setup each new verb needs. It does **not** affect the "authored twice" work (Section 4). It is a smaller, separable decision.
 
 Two practical layouts (a third combines them):
 
@@ -178,7 +178,7 @@ Two practical layouts (a third combines them):
 
 ![Akamai routing](docs/diagrams/04-akamai-routing.png)
 
-**In plain English:** acrobat.adobe.com has its **own** traffic-routing configuration. To host the verbs, it needs a handful of rules — send the verb addresses and the `/dc-shared` code folder to our server, handle staging, and (once ready) apply the Section 4 path-strip fix.
+acrobat.adobe.com has its **own** traffic-routing configuration. To host the verbs, it needs a handful of rules — send the verb addresses and the `/dc-shared` code folder to our server, handle staging, and (once ready) apply the Section 4 path-strip fix.
 
 With the recommended **A1** setup, the routing points at `main--dc-frictionless--adobecom.aem.live`.
 
@@ -197,7 +197,7 @@ With the recommended **A1** setup, the routing points at `main--dc-frictionless-
 
 ![Scenario matrix](docs/diagrams/05-scenario-matrix.png)
 
-**In plain English:** the grid below shows every combination. The only per-verb effort that varies is traffic-routing work; the "authored twice" work is being removed for everyone by the Section 4 fix.
+The grid below shows every combination. The only per-verb effort that varies is traffic-routing work; the "authored twice" work is being removed for everyone by the Section 4 fix.
 
 | Repo | URL layout | Routing work per new verb | Risk to live adobe.com |
 |------|-----------|---------------------------|------------------------|
@@ -212,7 +212,7 @@ With the recommended **A1** setup, the routing points at `main--dc-frictionless-
 
 ![Migrating verbs with the DA import tool](docs/diagrams/08-migration-da-import.png)
 
-**In plain English:** we already have many verb pages on adobe.com. Rather than rebuilding each one by hand on acrobat.adobe.com, we use Adobe's **DA "import" tool** to copy the pages — and their linked images/fragments — from the `da-dc` authoring instance into the `dc-frictionless` authoring instance. This mostly works; one asset-copying gap is being fixed with the DA team.
+We already have many verb pages on adobe.com. Rather than rebuilding each one by hand on acrobat.adobe.com, we use Adobe's **DA "import" tool** to copy the pages — and their linked images/fragments — from the `da-dc` authoring instance into the `dc-frictionless` authoring instance. This mostly works; one asset-copying gap is being fixed with the DA team.
 
 **Tool:** DA Import — <https://da.live/apps/import>
 
