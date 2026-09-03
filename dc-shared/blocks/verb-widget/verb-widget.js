@@ -903,13 +903,17 @@ export default async function init(element) {
 
   function handleUploadedEvent(data, attempts, cookieExp, canSendDataToSplunk) {
     exitFlag = true;
-    setTimeout(() => {
+    if (LIMITS[VERB]?.noRedirectTimeout ?? true) {
       window.dispatchEvent(redirectReady);
-      window.lana?.log(
-        'Adobe Analytics done callback failed to trigger, 3 second timeout dispatched event.',
-        { sampleRate: 1, tags: 'DC_Milo,Project Unity (DC)', severity: 'warning' },
-      );
-    }, 3000);
+    } else {
+      setTimeout(() => {
+        window.dispatchEvent(redirectReady);
+        window.lana?.log(
+          'Adobe Analytics done callback failed to trigger, 3 second timeout dispatched event.',
+          { sampleRate: 1, tags: 'DC_Milo,Project Unity (DC)', severity: 'warning' },
+        );
+      }, 3000);
+    }
     setCookie('UTS_Uploaded', Date.now(), cookieExp);
     const calcUploadedTime = uploadedTime();
     const metadata = { ...data, uploadTime: calcUploadedTime, userAttempts: attempts };
@@ -991,11 +995,26 @@ export default async function init(element) {
     noOfFiles = files.length;
   });
 
-  errorCloseBtn.addEventListener('click', () => {
+  let outsideClickHandler = null;
+  const closeError = () => {
     errorState.classList.remove('verb-error');
     errorState.classList.add('hide');
     errorStateText.textContent = '';
     clearSrAlert();
+    if (outsideClickHandler) {
+      document.removeEventListener('click', outsideClickHandler);
+      outsideClickHandler = null;
+    }
+  };
+  errorCloseBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeError();
+  });
+  errorCloseBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      closeError();
+    }
   });
 
   element.addEventListener('unity:track-analytics', (e) => {
@@ -1061,6 +1080,14 @@ export default async function init(element) {
       errorState.classList.remove('hide');
       errorStateText.textContent = message;
       announceToScreenReader(message);
+      errorCloseBtn.focus();
+      setTimeout(() => {
+        if (outsideClickHandler) return;
+        outsideClickHandler = (e) => {
+          if (!errorState.contains(e.target)) closeError();
+        };
+        document.addEventListener('click', outsideClickHandler);
+      }, 0);
     }
     if (logToLana) {
       window.lana?.log(
@@ -1068,12 +1095,6 @@ export default async function init(element) {
         logOptions,
       );
     }
-
-    setTimeout(() => {
-      errorState.classList.remove('verb-error');
-      errorState.classList.add('hide');
-      errorStateText.textContent = '';
-    }, 5000);
   };
 
   element.addEventListener('unity:show-error-toast', (e) => {

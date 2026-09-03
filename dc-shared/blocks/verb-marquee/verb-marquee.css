@@ -668,6 +668,14 @@
   height: 32px;
   cursor: pointer;
   display: block;
+  background: none;
+  border: none;
+  outline: none;
+}
+
+.verb-marquee-errorBtn:focus {
+  box-shadow: 0 0 0 2px var(--consonant-color-white, #fff);
+  border-radius: 2px;
 }
 
 .verb-marquee-errorIcon {
