@@ -69,7 +69,11 @@ const CREATEPDF_FILES = [...COMMON_TO_PDF_FILES, '.psd', '.ai', '.indd'];
 const SINGLE_PDF = { maxFileSize: MB100, acceptedFiles: PDF_ONLY, maxNumFiles: 1 };
 const MULTI_PDF = { maxFileSize: MB100, acceptedFiles: PDF_ONLY, multipleFiles: true };
 const MULTI_ALL = { maxFileSize: MB100, acceptedFiles: ALL_FILES, multipleFiles: true };
-const MULTI_COMMON_TO_PDF = { maxFileSize: MB100, acceptedFiles: COMMON_TO_PDF_FILES, multipleFiles: true };
+const MULTI_COMMON_TO_PDF = {
+  maxFileSize: MB100,
+  acceptedFiles: COMMON_TO_PDF_FILES,
+  multipleFiles: true,
+};
 const GENAI_MULTI = { ...MULTI_ALL, maxNumFiles: 100, uploadType: 'multifile-only', subCopy: true, genAI: true };
 const group = (verbs, config) => verbs.reduce((acc, v) => { acc[v] = config; return acc; }, {});
 
@@ -89,7 +93,12 @@ export const LIMITS = {
   'split-pdf': { ...SINGLE_PDF, signedInAcceptedFiles: SIGNED_IN_FILES, typeOneLanding: true },
   'add-comment': { ...SINGLE_PDF, typeOneLanding: true },
   'compress-pdf': { maxFileSize: 2147483648, acceptedFiles: ALL_FILES, multipleFiles: true, typeOneLanding: true },
-  sendforsignature: { maxFileSize: 5242880, acceptedFiles: PDF_ONLY, maxNumFiles: 1, mobileApp: true },
+  sendforsignature: {
+    maxFileSize: 5242880,
+    acceptedFiles: PDF_ONLY,
+    maxNumFiles: 1,
+    mobileApp: true,
+  },
   ...group(['number-pages', 'crop-pages'], { ...SINGLE_PDF, level: 0, typeOneLanding: true }),
   ...group(['protect-pdf', 'delete-pages', 'insert-pdf', 'extract-pages', 'reorder-pages'], SINGLE_PDF),
   ...group(['chat-pdf', 'pdf-ai'], GENAI_MULTI),
