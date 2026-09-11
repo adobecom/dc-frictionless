@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Frictionless Domain Routing — Boards</title>
+<style>
+  :root{
+    --yellow:#FFF3B0; --blue:#CDE8FF; --green:#C9F2D4; --pink:#FFD6E0;
+    --purple:#E4DBFF; --orange:#FFE1B3; --gray:#EDEFF2; --ink:#1f2430;
+    --line:#8b93a7; --red:#ff5a6a; --good:#20b26b;
+  }
+  *{box-sizing:border-box;font-family:'Segoe UI',Inter,Roboto,Arial,sans-serif;}
+  body{margin:0;background:#fff;color:var(--ink);}
+  .board{
+    position:relative;width:1500px;padding:40px 48px 52px;
+    background:#fbfcfe;
+    background-image:radial-gradient(#d7dce6 1.4px, transparent 1.4px);
+    background-size:26px 26px;
+    border-bottom:2px dashed #d0d6e2;
+  }
+  .board h2{margin:0 0 6px;font-size:30px;letter-spacing:.2px;}
+  .board .sub{margin:0 0 26px;color:#5c6474;font-size:16px;}
+  .row{display:flex;gap:22px;align-items:stretch;flex-wrap:wrap;}
+  .col{display:flex;flex-direction:column;gap:14px;}
+  .card{
+    border-radius:14px;padding:14px 16px;box-shadow:0 4px 10px rgba(20,28,50,.10);
+    border:1.5px solid rgba(0,0,0,.06);font-size:15px;line-height:1.35;
+  }
+  .card .t{font-weight:700;font-size:15px;margin-bottom:4px;}
+  .card .u{font-family:'SFMono-Regular',Consolas,monospace;font-size:13px;background:rgba(255,255,255,.55);
+    padding:2px 6px;border-radius:6px;display:inline-block;margin-top:4px;}
+  .yellow{background:var(--yellow);} .blue{background:var(--blue);} .green{background:var(--green);}
+  .pink{background:var(--pink);} .purple{background:var(--purple);} .orange{background:var(--orange);} .gray{background:var(--gray);}
+  .lane{border-radius:16px;padding:16px;flex:1;min-width:300px;border:2px solid rgba(0,0,0,.08);}
+  .lane .lane-h{font-weight:800;font-size:17px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:#fff;border:1.5px solid rgba(0,0,0,.12);}
+  .arrow{display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--line);font-weight:700;padding:0 2px;}
+  .arrow.down{transform:rotate(90deg);}
+  .flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .note{font-size:13.5px;padding:10px 12px;border-radius:12px;}
+  .note b{display:block;margin-bottom:3px;}
+  .pros{background:#e7f8ee;border:1.5px solid #b7e6c9;}
+  .cons{background:#fdeaec;border:1.5px solid #f6c2c8;}
+  .tag{font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px;color:#fff;}
+  .tag.hi{background:var(--good);} .tag.mid{background:#e2a300;} .tag.lo{background:var(--red);}
+  .legend{display:flex;gap:16px;margin-top:14px;font-size:13px;color:#5c6474;flex-wrap:wrap;}
+  .legend span{display:flex;align-items:center;gap:6px;}
+  .dot{width:12px;height:12px;border-radius:4px;display:inline-block;}
+  table{border-collapse:separate;border-spacing:0;width:100%;font-size:14px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 10px rgba(20,28,50,.08);}
+  th,td{padding:11px 13px;text-align:left;border-bottom:1px solid #e6e9f0;}
+  th{background:#2b3242;color:#fff;font-size:13px;}
+  tr:last-child td{border-bottom:none;}
+  .code-root{margin-top:14px;font-size:13.5px;color:#4a5163;background:#fff;border:1.5px dashed #b9c0d0;border-radius:10px;padding:10px 14px;display:inline-block;}
+  .badge{position:absolute;top:34px;right:44px;font-size:13px;font-weight:800;color:#fff;background:#2b3242;padding:6px 14px;border-radius:999px;}
+  .colhead{font-weight:800;font-size:16px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- ============ BOARD 0: CURRENT SETUP ============ -->
+<section class="board" id="b0">
+  <div class="badge">AS-IS</div>
+  <h2>① Current Setup — Two Domains, Two EDS Projects</h2>
+  <p class="sub">All delivery is Edge Delivery Services (EDS). acrobat.adobe.com is on a <b>separate Akamai property</b>.</p>
+
+  <div class="row">
+    <div class="lane blue" style="max-width:700px">
+      <div class="lane-h">🌐 www.adobe.com <span class="pill">Akamai property A</span></div>
+      <div class="flow">
+        <div class="card yellow"><div class="t">Akamai rule</div><span class="u">/acrobat/*</span></div>
+        <div class="arrow">➜</div>
+        <div class="card green"><div class="t">EDS origin</div><span class="u">main--da-dc--adobecom.aem.live</span></div>
+      </div>
+      <div class="flow" style="margin-top:12px">
+        <div class="card purple"><div class="t">Repo</div>adobecom/da-dc</div>
+        <div class="arrow">➜</div>
+        <div class="card orange"><div class="t">DA instance</div>da-dc authoring</div>
+        <div class="arrow">➜</div>
+        <div class="card gray"><div class="t">Verb URLs</div><span class="u">/acrobat/online/&lt;verb&gt;</span></div>
+      </div>
+    </div>
+
+    <div class="lane pink" style="max-width:720px">
+      <div class="lane-h">🅰️ acrobat.adobe.com <span class="pill">Akamai property B (separate)</span></div>
+      <div class="flow">
+        <div class="card yellow"><div class="t">Akamai rule</div><span class="u">/heic-to-pdf</span></div>
+        <div class="arrow">➜</div>
+        <div class="card green"><div class="t">EDS origin</div><span class="u">main--dc-frictionless--adobecom.aem.live</span></div>
+      </div>
+      <div class="flow" style="margin-top:12px">
+        <div class="card purple"><div class="t">Repo (this)</div>adobecom/dc-frictionless</div>
+        <div class="arrow">➜</div>
+        <div class="card orange"><div class="t">DA instance</div>dc-frictionless (separate)</div>
+        <div class="arrow">➜</div>
+        <div class="card gray"><div class="t">Verb URL (test)</div><span class="u">/heic-to-pdf (root)</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="code-root">🧩 <b>Code root differs:</b> adobe.com (da-dc) serves code from <span class="u" style="font-size:12px">/acrobat</span> (e.g. /acrobat/scripts/scripts.js) · acrobat.adobe.com (dc-frictionless) uses the <b>new</b> <span class="u" style="font-size:12px">/dc-shared/*</span> root — introduced to move code out from under /acrobat, which acrobat.adobe.com can't use · head.html detects acrobat.adobe.com / stage / DA hosts</div>
+</section>
+
+<!-- ============ BOARD A: DECISION A — REPO ============ -->
+<section class="board" id="bA">
+  <div class="badge">DECISION A · REPO</div>
+  <h2>② Which repo serves acrobat.adobe.com</h2>
+  <p class="sub">Independent of the URL path choice (Board ③). Trade-offs only. Note: A1's setup already exists and is proven for heic-to-pdf, so it can start fastest.</p>
+
+  <div class="row">
+    <div class="lane gray">
+      <div class="lane-h">Option A1 — Dedicated repo (keep dc-frictionless)</div>
+      <div class="flow">
+        <div class="card blue"><div class="t">da-dc</div>www.adobe.com only</div>
+        <div class="card pink"><div class="t">dc-frictionless</div>acrobat.adobe.com only</div>
+      </div>
+      <div class="flow" style="margin:10px 0">
+        <div class="card yellow" style="width:100%"><div class="t">⚠ manual sync</div>/dc-shared/* kept in sync across BOTH repos</div>
+      </div>
+      <div class="note pros"><b>Pros</b>Blast radius isolated from adobe.com · independent release/CI · clean ownership</div>
+      <div class="note cons"><b>Cons</b>Code duplication + drift · 2 DA instances · double CI/QA/prerender/edgeworker/cache-clear</div>
+    </div>
+
+    <div class="lane gray">
+      <div class="lane-h">Option A2 — Reuse da-dc for both domains</div>
+      <div class="flow" style="justify-content:center">
+        <div class="col" style="align-items:center">
+          <div class="card blue" style="text-align:center">🌐 www.adobe.com</div>
+          <div class="card pink" style="text-align:center">🅰️ acrobat.adobe.com</div>
+        </div>
+        <div class="arrow">➜</div>
+        <div class="card green" style="align-self:center"><div class="t">Single EDS project</div><span class="u">main--da-dc--adobecom.aem.live</span><br><span style="font-size:12px">one repo · one DA instance</span></div>
+      </div>
+      <div class="note pros" style="margin-top:10px"><b>Pros (steady state)</b>Single source of truth for code · one DA/CI/QA · lowest ongoing cost</div>
+      <div class="note cons"><b>Cons</b>Shared blast radius (bad /dc-shared hits both) · logical not physical isolation · shared governance</div>
+      <div class="note" style="background:#fdeaec;border:1.5px solid #f6c2c8"><b>⚠ Blocker 1 — code-root migration</b>adobe.com uses the /acrobat code root, NOT /dc-shared. Unifying means re-homing ALL adobe.com DC pages from /acrobat onto /dc-shared → project-wide edits + www.adobe.com Akamai update + full adobe.com regression.</div>
+      <div class="note" style="background:#fdeaec;border:1.5px solid #f6c2c8"><b>⚠ Blocker 2 — /acrobat collision</b>da-dc content is under /acrobat/online/; acrobat.adobe.com can't expose /acrobat → needs an Akamai origin-path rewrite (path-portable page) or a separate authored path.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BOARD B: DECISION B — PATH ============ -->
+<section class="board" id="bB">
+  <div class="badge">DECISION B · PATH</div>
+  <h2>③ URL path layout on acrobat.adobe.com</h2>
+  <p class="sub">A <b>CDN-routing &amp; URL-namespace</b> decision only — drives how much Akamai work each <i>additional</i> verb needs. Independent of the repo choice, and independent of the dual-authoring (board ⑦).</p>
+
+  <div class="row">
+    <div class="lane yellow" style="flex:1">
+      <div class="colhead">B1 · Root-level</div>
+      <div class="card" style="background:#fff"><span class="u">/heic-to-pdf</span><br><span class="u">/compress-pdf</span><br><span class="u">/word-to-pdf</span></div>
+      <div style="margin:8px 0"><span class="tag lo">Per-verb Akamai rule</span></div>
+      <div class="note pros"><b>Pros</b>Shortest, cleanest URLs · matches current test URL</div>
+      <div class="note cons"><b>Cons</b>Shared root namespace → collision risk · new CDN rule + review per verb</div>
+    </div>
+
+    <div class="lane green" style="flex:1">
+      <div class="colhead">B2 · Shared prefix ⭐ least hassle</div>
+      <div class="card" style="background:#fff"><span class="u">/acrobat/online/heic-to-pdf</span><br><span class="u">/acrobat/online/compress-pdf</span><br><span class="u">/acrobat/online/word-to-pdf</span></div>
+      <div style="margin:8px 0"><span class="tag hi">ONE Akamai rule total</span></div>
+      <div class="note pros"><b>Pros</b>Add verb = author only, no CDN change · low collision risk · scales to N verbs</div>
+      <div class="note cons"><b>Cons</b>Longer URLs · existing /heic-to-pdf needs a redirect</div>
+    </div>
+
+    <div class="lane purple" style="flex:1">
+      <div class="colhead">B3 · Hybrid (prefix + vanity)</div>
+      <div class="card" style="background:#fff">Serve under <span class="u">/acrobat/online/*</span><br>Expose <span class="u">/heic-to-pdf</span> via redirect/rewrite</div>
+      <div style="margin:8px 0"><span class="tag mid">Small vanity map / verb</span></div>
+      <div class="note pros"><b>Pros</b>Clean public URLs + simple delivery prefix</div>
+      <div class="note cons"><b>Cons</b>Most Akamai config · needs canonical tags (SEO)</div>
+    </div>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--good)"></span> lowest per-verb effort</span>
+    <span><span class="dot" style="background:#e2a300"></span> moderate</span>
+    <span><span class="dot" style="background:var(--red)"></span> highest per-verb effort</span>
+  </div>
+</section>
+
+<!-- ============ BOARD C: AKAMAI ============ -->
+<section class="board" id="bC">
+  <div class="badge">AKAMAI</div>
+  <h2>④ Akamai routing — acrobat.adobe.com (separate property)</h2>
+  <p class="sub">Same property regardless of choices; origin depends on Decision A, match rules depend on Decision B.</p>
+
+  <div class="row">
+    <div class="lane blue" style="max-width:820px">
+      <div class="lane-h">Request flow</div>
+      <div class="flow">
+        <div class="card gray"><div class="t">Browser</div>acrobat.adobe.com/…</div>
+        <div class="arrow">➜</div>
+        <div class="card yellow"><div class="t">Akamai property B</div>match rule (host+path)</div>
+        <div class="arrow">➜</div>
+        <div class="card green"><div class="t">EDS origin</div>main--&lt;repo&gt;--adobecom.aem.live</div>
+      </div>
+      <div class="flow" style="margin-top:10px">
+        <div class="card orange" style="width:100%"><div class="t">Always required</div>Code-root rule <span class="u">/dc-shared/*</span> ➜ EDS origin · plus stage rule for <span class="u">stage.acrobat.adobe.com</span></div>
+      </div>
+    </div>
+    <div class="col" style="flex:1;min-width:360px">
+      <div class="card pink"><div class="t">Origin by Decision A</div>A1 ➜ <span class="u">…dc-frictionless…</span><br>A2 ➜ <span class="u">…da-dc…</span></div>
+      <div class="card purple"><div class="t">Match rules by Decision B</div>B1 ➜ one rule <b>per verb</b><br>B2 ➜ <b>one</b> rule <span class="u">/acrobat/online/*</span><br>B3 ➜ prefix rule + vanity redirects</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BOARD D: SCENARIO MATRIX ============ -->
+<section class="board" id="bD">
+  <div class="badge">ALL SCENARIOS</div>
+  <h2>⑤ Scenario matrix — Repo (A) × Path (B)</h2>
+  <p class="sub">Six combinations. Pick one cell as the target end-state. Only <b>CDN work</b> varies per verb — authoring is 2× in every row until the header flag (board ⑦).</p>
+  <table>
+    <tr><th>#</th><th>Repo</th><th>Path</th><th>CDN work per new verb</th><th>Blast-radius isolation</th><th>Code duplication</th></tr>
+    <tr><td>1</td><td>A1 dedicated</td><td>B1 root</td><td><span class="tag lo">new Akamai rule / verb</span></td><td><span class="tag hi">High</span></td><td>Yes</td></tr>
+    <tr><td>2</td><td>A1 dedicated</td><td>B2 prefix</td><td><span class="tag hi">none (wildcard)</span></td><td><span class="tag hi">High</span></td><td>Yes</td></tr>
+    <tr><td>3</td><td>A1 dedicated</td><td>B3 hybrid</td><td><span class="tag mid">vanity map / verb</span></td><td><span class="tag hi">High</span></td><td>Yes</td></tr>
+    <tr><td>4</td><td>A2 reuse da-dc</td><td>B1 root</td><td><span class="tag lo">new Akamai rule / verb</span></td><td><span class="tag mid">Shared</span></td><td>No</td></tr>
+    <tr><td>5</td><td>A2 reuse da-dc</td><td>B2 prefix</td><td><span class="tag hi">none (wildcard)</span></td><td><span class="tag mid">Shared</span></td><td>No</td></tr>
+    <tr><td>6</td><td>A2 reuse da-dc</td><td>B3 hybrid</td><td><span class="tag mid">vanity map / verb</span></td><td><span class="tag mid">Shared</span></td><td>No</td></tr>
+  </table>
+  <div class="legend">
+    <span>⭐ Lowest CDN effort: <b>B2 / B3</b></span>
+    <span>🔒 Highest isolation: <b>A1</b></span>
+    <span>♻️ No code duplication: <b>A2</b></span>
+    <span>✍️ Authoring overhead: same in all rows — set by the header-flag decision, not this matrix</span>
+  </div>
+</section>
+
+<!-- ============ BOARD E: TWO HOSTING PATHS DEEP-DIVE ============ -->
+<section class="board" id="bE">
+  <div class="badge">HOSTING PATH · DEEP-DIVE</div>
+  <h2>⑥ Where do the verb pages live in origin? — two options</h2>
+  <p class="sub">Same full stack for both: <b>Browser → Akamai (acrobat.adobe.com property) → EDS origin → DA content tree</b>. This is purely a <b>CDN-routing &amp; URL-namespace</b> decision — it does <b>NOT</b> change the dual authoring (that's the header-flag decision, board ⑦).</p>
+
+  <div class="row">
+    <!-- PATH 1 -->
+    <div class="lane yellow" style="flex:1;min-width:520px">
+      <div class="lane-h">Path 1 — Directly in origin (root)</div>
+      <div class="col" style="align-items:stretch">
+        <div class="card gray"><div class="t">① Public URL</div><span class="u">acrobat.adobe.com/heic-to-pdf</span></div>
+        <div class="arrow down">➜</div>
+        <div class="card blue"><div class="t">② Akamai match rule</div>one rule <b>per verb</b> (or maintained allow-list):<br><span class="u">/heic-to-pdf</span> <span class="u">/compress-pdf</span> …<br>everything else ➜ existing Acrobat web app</div>
+        <div class="arrow down">➜</div>
+        <div class="card green"><div class="t">③ EDS origin</div><span class="u">main--dc-frictionless--adobecom.aem.live</span></div>
+        <div class="arrow down">➜</div>
+        <div class="card orange"><div class="t">④ DA / EDS content path</div>authored at root: <span class="u">/heic-to-pdf</span></div>
+      </div>
+      <div class="note cons" style="margin-top:10px"><b>Watch-outs</b>Root namespace shared with the Acrobat web app → every verb is an explicit carve-out + collision check · new Akamai rule for every verb added</div>
+      <div class="note pros"><b>Wins</b>Cleanest URLs · matches the current <span class="u">/heic-to-pdf</span> test · no redirects</div>
+    </div>
+
+    <!-- PATH 2 -->
+    <div class="lane green" style="flex:1;min-width:520px">
+      <div class="lane-h">Path 2 — Under /acrobat/online/ prefix</div>
+      <div class="col" style="align-items:stretch">
+        <div class="card gray"><div class="t">① Public URL</div><span class="u">acrobat.adobe.com/acrobat/online/heic-to-pdf</span></div>
+        <div class="arrow down">➜</div>
+        <div class="card blue"><div class="t">② Akamai match rule</div><b>ONE</b> rule covers all verbs:<br><span class="u">/acrobat/online/*</span> ➜ EDS origin<br>everything else ➜ existing Acrobat web app</div>
+        <div class="arrow down">➜</div>
+        <div class="card green"><div class="t">③ EDS origin</div><span class="u">main--dc-frictionless--adobecom.aem.live</span></div>
+        <div class="arrow down">➜</div>
+        <div class="card orange"><div class="t">④ DA / EDS content path</div>authored under prefix: <span class="u">/acrobat/online/heic-to-pdf</span></div>
+      </div>
+      <div class="note pros" style="margin-top:10px"><b>Wins</b>Add a verb = <b>no CDN change</b> (one wildcard covers all) · single carve-out → minimal collision risk · scales to N verbs · mirrors www.adobe.com convention</div>
+      <div class="note cons"><b>Watch-outs</b>Longer URLs · existing <span class="u">/heic-to-pdf</span> needs a redirect · confirm <span class="u">/acrobat/online/</span> is free on acrobat.adobe.com</div>
+    </div>
+  </div>
+
+  <div class="code-root" style="margin-top:16px">🧩 <b>Same for both paths:</b> code root <span class="u" style="font-size:12px">/dc-shared/*</span> always needs its own Akamai rule ➜ EDS origin · stage rule for <span class="u" style="font-size:12px">stage.acrobat.adobe.com</span></div>
+
+  <table style="margin-top:18px">
+    <tr><th>Dimension</th><th>Path 1 — root (directly in origin)</th><th>Path 2 — /acrobat/online/ prefix</th></tr>
+    <tr><td>Akamai rules as verbs grow</td><td><span class="tag lo">1 per verb</span> (or allow-list)</td><td><span class="tag hi">1 total</span> (wildcard)</td></tr>
+    <tr><td>New Akamai rule per verb</td><td>Yes — one per verb</td><td><span class="tag hi">No — wildcard covers all</span></td></tr>
+    <tr><td>Namespace collision risk</td><td><span class="tag lo">Higher</span> — shares root with Acrobat app</td><td><span class="tag hi">Low</span> — one isolated prefix</td></tr>
+    <tr><td>URL cleanliness</td><td><span class="tag hi">Best</span> — short vanity URL</td><td><span class="tag mid">Longer</span> path</td></tr>
+    <tr><td>Redirect for existing test URL</td><td>None</td><td>Needed (/heic-to-pdf → prefixed)</td></tr>
+    <tr><td>Migrating many verbs (CDN)</td><td><span class="tag lo">Recurring CDN work</span></td><td><span class="tag hi">Least CDN hassle</span></td></tr>
+    <tr><td>Authoring copies per verb</td><td colspan="2" style="text-align:center;background:#fff4d6"><b>Identical — both author twice (page + /dc-shared/ copy) until the header flag lands · see board ⑦</b></td></tr>
+  </table>
+  <div class="legend">
+    <span>⚠️ The path choice affects <b>only</b> CDN routing + URL namespace — <b>not</b> authoring overhead.</span>
+    <span>💡 The two can be combined: serve under <b>/acrobat/online/*</b> and expose clean root vanity URLs via an Akamai rewrite/redirect (needs canonical tags).</span>
+  </div>
+</section>
+
+<!-- ============ BOARD F: PRERENDER EDGEWORKER LOOP → DUAL AUTHORING ============ -->
+<section class="board" id="bF">
+  <div class="badge">AUTHORED TWICE · FIX IN PROGRESS</div>
+  <h2>⑦ Why verb pages are authored twice today — and the fix now in validation</h2>
+  <p class="sub">A prerender EdgeWorker needs a second copy today. A traffic-layer fix (Akamai path-strip) removes it — being tested on staging. Independent of repo (Decision A) and URL path (Decision B).</p>
+
+  <!-- EdgeWorker -->
+  <div class="card purple" style="padding:16px 18px">
+    <div class="t" style="font-size:17px">⚙️ A prerender EdgeWorker renders the LCP (verb-widget block)</div>
+    Code lives in <span class="u">main.js</span> in the <b>da-dc</b> repo (<span class="u">edgeworkers/Acrobat_DC_web_prod/main.js</span>) · runs on <b>both domains</b> (www.adobe.com + acrobat.adobe.com).
+  </div>
+  <div class="arrow down" style="justify-content:flex-start;padding-left:60px">➜</div>
+
+  <!-- The loop problem -->
+  <div class="lane pink">
+    <div class="lane-h">🔁 The problem — an endless fetch loop</div>
+    <p style="margin:0 0 10px;font-size:14.5px;color:#40485a">To prerender the page, the EdgeWorker must <b>fetch the page itself</b>. But that fetch hits the same path the EdgeWorker runs on → the EdgeWorker fires again → <b>infinite loop</b>. It needs a way to tell <i>"this request is me fetching, don't run again."</i></p>
+    <div class="flow">
+      <div class="card gray">User request ➜ EdgeWorker</div>
+      <div class="arrow">➜</div>
+      <div class="card gray">EdgeWorker fetches the page…</div>
+      <div class="arrow">➜</div>
+      <div class="card" style="background:#ffe0e0">…which triggers the EdgeWorker again 🔁</div>
+    </div>
+  </div>
+  <div class="arrow down" style="justify-content:flex-start;padding-left:60px">➜</div>
+
+  <!-- Today vs Fix in progress -->
+  <div class="row">
+    <div class="lane yellow" style="flex:1">
+      <div class="lane-h">🟡 Today (temporary) — a second copy</div>
+      <div class="card" style="background:#fff"><div class="t">EdgeWorker fetches a different path</div>To dodge the loop it fetches under <span class="u">/dc-shared/</span> — so the content must ALSO be published there.</div>
+      <div class="note cons"><b>Cost</b>Two authored copies per verb, kept in sync · grows with every verb migrated</div>
+      <div class="note" style="background:#eef;border:1.5px solid #ccd">On www.adobe.com the loop is avoided with a request flag <span class="u" style="font-size:12px">X-EW-Frictionless-Page: true</span>. The Acrobat team did not want that flag here — it complicates their traffic cache-key logic.</div>
+    </div>
+    <div class="lane green" style="flex:1">
+      <div class="lane-h">🟢 Fix in progress — Akamai strips the folder</div>
+      <div class="card" style="background:#fff"><div class="t">Keep ONE real page</div>EdgeWorker still asks for a <span class="u">/dc-shared/…</span> address (no loop), but Akamai's <b>"Modify Outgoing Request Path"</b> strips <span class="u">/dc-shared</span> before it hits the origin → the origin returns the single real page.</div>
+      <div class="note pros"><b>Result</b>No duplicate — each verb authored ONCE · scoped to just the EdgeWorker verb paths (not all /dc-shared/)</div>
+      <div class="note" style="background:#e7f8ee;border:1.5px solid #b7e6c9"><b>Status</b>DevOps (Adam Peller) setting it up on Akamai staging for validation.</div>
+    </div>
+  </div>
+
+  <div class="code-root" style="margin-top:16px">📌 <b>Key point:</b> the duplicate is a <b>temporary</b> constraint with a fix in validation. The fix is <b>independent of the repo (Decision A) and URL path (Decision B)</b> — and once live, every future verb is authored just once.</div>
+</section>
+
+<!-- ============ BOARD G: MIGRATING EXISTING VERBS (DA IMPORT) ============ -->
+<section class="board" id="bG">
+  <div class="badge">MIGRATION · IN PROGRESS</div>
+  <h2>⑧ Moving existing verbs — da-dc → dc-frictionless (DA import tool)</h2>
+  <p class="sub">Copy existing verb pages (and their linked assets) across with Adobe's DA import tool instead of rebuilding by hand.</p>
+
+  <div class="flow">
+    <div class="card blue"><div class="t">Source</div>da-dc DA page<br><span class="u" style="font-size:11px">main--da-dc--adobecom.aem.page/acrobat/online/&lt;verb&gt;</span></div>
+    <div class="arrow">➜</div>
+    <div class="card yellow"><div class="t">DA Import tool</div><span class="u">da.live/apps/import</span><br>Linked content = <b>Import</b></div>
+    <div class="arrow">➜</div>
+    <div class="card green"><div class="t">Destination</div>Org <b>adobecom</b> · Site <b>dc-frictionless</b><br>Prod domain <span class="u" style="font-size:11px">acrobat.adobe.com</span></div>
+  </div>
+
+  <div class="row" style="margin-top:16px">
+    <div class="lane pink" style="flex:1">
+      <div class="lane-h">⚠️ Known issue (raised with DA team)</div>
+      <div class="card" style="background:#fff"><div class="t">Not all linked assets copy</div>Page + many SVGs import fine, but some linked files do not move — e.g. <span class="u" style="font-size:11px">/dc-shared/…/ppt-to-pdf-how-to.svg</span>.</div>
+      <div class="note cons"><b>Impact</b>Imported page may be missing images/fragments until fixed</div>
+    </div>
+    <div class="lane green" style="flex:1">
+      <div class="lane-h">✅ Interim plan</div>
+      <div class="card" style="background:#fff"><div class="t">Verify + re-copy</div>After each import, check the linked assets and manually re-copy any that are missing.</div>
+      <div class="note pros"><b>Status</b>Issue logged with the DA team; follow-up in progress.</div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
