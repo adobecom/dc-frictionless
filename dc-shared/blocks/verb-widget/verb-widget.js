@@ -27,6 +27,7 @@ const verbRedirMap = {
   'protect-pdf': 'protect',
   'add-comment': 'addcomment',
   'pdf-to-image': 'pdftoimage',
+  'pdf-to-word': 'pdf-to-word',
   'reorder-pages': 'reorderpages',
   sendforsignature: 'sendforsignature',
   'rotate-pages': 'rotatepages',
@@ -175,11 +176,11 @@ function initPrerender(url) {
 
 function redDirLink(verb) {
   const hostname = window?.location?.hostname;
-  const VERB = verb;
-  let newLocation;
-  if (hostname !== 'acrobat.adobe.com') newLocation = `https://stage.acrobat.adobe.com/${verbRedirMap[VERB]}`;
-  else newLocation = `https://acrobat.adobe.com/${verbRedirMap[VERB]}` || fallBack;
-  return newLocation;
+  const path = verbRedirMap[verb];
+  // An unmapped verb would otherwise build an "/undefined" destination.
+  if (!path) return fallBack;
+  const origin = hostname !== 'acrobat.adobe.com' ? 'https://stage.acrobat.adobe.com' : 'https://acrobat.adobe.com';
+  return `${origin}/${path}`;
 }
 
 // eslint-disable-next-line no-unused-vars
