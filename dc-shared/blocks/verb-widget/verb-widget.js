@@ -176,11 +176,11 @@ function initPrerender(url) {
 
 function redDirLink(verb) {
   const hostname = window?.location?.hostname;
-  const path = verbRedirMap[verb];
-  // An unmapped verb would otherwise build an "/undefined" destination.
-  if (!path) return fallBack;
-  const origin = hostname !== 'acrobat.adobe.com' ? 'https://stage.acrobat.adobe.com' : 'https://acrobat.adobe.com';
-  return `${origin}/${path}`;
+  const VERB = verb;
+  let newLocation;
+  if (hostname !== 'acrobat.adobe.com') newLocation = `https://stage.acrobat.adobe.com/${verbRedirMap[VERB]}`;
+  else newLocation = `https://acrobat.adobe.com/${verbRedirMap[VERB]}` || fallBack;
+  return newLocation;
 }
 
 // eslint-disable-next-line no-unused-vars
