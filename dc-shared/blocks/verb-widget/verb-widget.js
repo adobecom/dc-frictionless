@@ -27,7 +27,7 @@ const verbRedirMap = {
   'protect-pdf': 'protect',
   'add-comment': 'addcomment',
   'pdf-to-image': 'pdftoimage',
-  'pdf-to-word': 'pdf-to-word',
+  'pdf-to-word': 'tools/pdf-to-word',
   'reorder-pages': 'reorderpages',
   sendforsignature: 'sendforsignature',
   'rotate-pages': 'rotatepages',
