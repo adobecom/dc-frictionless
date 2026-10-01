@@ -132,10 +132,12 @@ let tabClosureSent = false;
 let isUploading = false;
 
 function prefetchTarget() {
+  if (window.prefetchTargetLoaded || !window.prefetchTargetUrl) return;
   const iframe = document.createElement('iframe');
   iframe.src = window.prefetchTargetUrl;
   iframe.style.display = 'none';
   document.body.appendChild(iframe);
+  window.prefetchTargetLoaded = true;
 }
 
 function prefetchNextPage(url) {
@@ -718,6 +720,7 @@ export default async function init(element) {
       },
       redirectUrl: () => {
         if (data) initiatePrefetch(data.redirectUrl);
+        if (isUploading) prefetchTarget();
         handleAnalyticsEvent('job:redirect-success', metadata, false, canSendDataToSplunk);
       },
     };
