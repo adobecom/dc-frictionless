@@ -411,7 +411,10 @@ function replaceDotMedia(area = document) {
   // eslint-disable-next-line compat/compat
   const currUrl = new URL(window.location);
   const pathSeg = currUrl.pathname.split('/').length;
-  if ((prefix === '' && pathSeg >= 3) || (prefix !== '' && pathSeg >= 4)) return;
+  const toolsPath = `${prefix}/tools`;
+  const isToolsPath = currUrl.pathname === toolsPath
+    || currUrl.pathname.startsWith(`${toolsPath}/`);
+  if (!isToolsPath && ((prefix === '' && pathSeg >= 3) || (prefix !== '' && pathSeg >= 4))) return;
   const resetAttributeBase = (tag, attr) => {
     area.querySelectorAll(`${tag}[${attr}^="./media_"]`).forEach((el) => {
       // eslint-disable-next-line compat/compat
