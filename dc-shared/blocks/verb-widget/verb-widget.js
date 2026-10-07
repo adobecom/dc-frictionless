@@ -130,10 +130,12 @@ const setDraggingClass = (widget, shouldToggle) => {
 };
 
 function prefetchTarget() {
+  if (window.prefetchTargetLoaded || !window.prefetchTargetUrl) return;
   const iframe = document.createElement('iframe');
   iframe.src = window.prefetchTargetUrl;
   iframe.style.display = 'none';
   document.body.appendChild(iframe);
+  window.prefetchTargetLoaded = true;
 }
 
 function prefetchNextPage(url) {
@@ -919,6 +921,7 @@ export default async function init(element) {
         if (data) {
           addCookieIfSubdomain();
           initiatePrefetch(data.redirectUrl);
+          if (isUploading) prefetchTarget();
           // TODO: add back once analytics can handle prerender
           // initPrerender(data.redirectUrl);
         }
