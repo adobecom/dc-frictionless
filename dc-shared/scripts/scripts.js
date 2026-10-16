@@ -370,6 +370,8 @@ const CONFIG = {
     mena_en: ['bh', 'dz', 'iq', 'ir', 'jo', 'lb', 'ly', 'om', 'ps', 'sy', 'tn', 'ye'],
   },
   imsScope: 'AdobeID,openid,gnav,pps.read,firefly_api,additional_info.roles,read_organizations,account_cluster.read',
+  // Without this, imslib leaves an empty "#" in the URL after sign-in.
+  adobeid: { alwaysRemoveTokenFromUrl: true },
 };
 
 /*
@@ -385,6 +387,7 @@ if (IMS_GUEST) {
   const CLIENT_ID = document.querySelector('meta[name="ims-cid"]')?.content;
 
   CONFIG.adobeid = {
+    ...CONFIG.adobeid,
     client_id: CLIENT_ID,
     scope: 'AdobeID,openid,gnav,additional_info.roles,read_organizations,pps.read,account_cluster.read,DCAPI',
 
