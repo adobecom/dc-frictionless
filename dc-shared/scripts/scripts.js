@@ -530,15 +530,6 @@ async function loadPage() {
     replacePlaceholdersWithImages(ietf, miloLibs);
   }
 
-  const verb = document.querySelector('.verb-widget')?.classList[1];
-  if (verb) {
-    const redirect = new URL(window.location.href);
-    redirect.hash = '';
-    redirect.searchParams.set('x_api_client_id', 'adobe_com');
-    redirect.searchParams.set('x_api_client_location', verb.replaceAll('-', '_'));
-    CONFIG.signInContext = { redirect_uri: redirect.href };
-  }
-
   setConfig({ ...CONFIG, miloLibs });
 
   window.addEventListener('IMS:Ready', async () => {
