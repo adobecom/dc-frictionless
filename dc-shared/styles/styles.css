@@ -238,7 +238,7 @@ div.how-to {
   margin-right: 28px;
 }
 
-/* Mobile HowTo */
+/* Moblie HowTo */
 @media (max-width: 600px) {
   .how-to.large-image {
     grid-template-areas:
