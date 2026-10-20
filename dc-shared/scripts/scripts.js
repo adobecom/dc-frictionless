@@ -385,6 +385,8 @@ if (IMS_GUEST) {
   const CLIENT_ID = document.querySelector('meta[name="ims-cid"]')?.content;
 
   CONFIG.adobeid = {
+    // Without this, imslib leaves an empty "#" in the URL after sign-in.
+    ...(document.querySelector('.verb-widget') && { alwaysRemoveTokenFromUrl: true }),
     client_id: CLIENT_ID,
     scope: 'AdobeID,openid,gnav,additional_info.roles,read_organizations,pps.read,account_cluster.read,DCAPI',
 
