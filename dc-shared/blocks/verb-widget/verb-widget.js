@@ -517,6 +517,13 @@ export default async function init(element) {
 
   const children = element.querySelectorAll(':scope > div');
   const VERB = element.classList[1];
+  if (VERB) {
+    const redirect = new URL(window.location.href);
+    redirect.hash = '';
+    redirect.searchParams.set('x_api_client_id', 'adobe_com');
+    redirect.searchParams.set('x_api_client_location', VERB.replaceAll('-', '_'));
+    getConfig().signInContext = { redirect_uri: redirect.href };
+  }
   const widgetHeading = createTag('h1', { class: 'verb-heading' }, children[0].textContent);
   let widgetSubHeading = window.mph[`verb-widget-${VERB}-description`];
   let widgetMobSubHeading = window.mph[`verb-widget-${VERB}-mobile-description`];
